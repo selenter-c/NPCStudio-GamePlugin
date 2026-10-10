@@ -1,0 +1,8 @@
+dist/
+build/
+*.pex
+*.dll
+*.pdb
+*.log
+.vs/
+.vscode/

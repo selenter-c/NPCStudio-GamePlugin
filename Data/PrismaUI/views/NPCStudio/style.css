@@ -1,0 +1,43 @@
+@font-face {
+    font-family: 'NPCStudioFont';
+    src: url('assets/fonts/main-cyrillic.woff2') format('woff2');
+    font-display: swap;
+    unicode-range: U+0400-04FF, U+0500-052F;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'NPCStudioFont', 'Skyrim Font', 'Segoe UI', sans-serif;
+    background: #1a1a1a;
+    color: #e8e8e8;
+    padding: 2rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #c9a961;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+h1 { color: #c9a961; font-size: 2rem; }
+.hint { color: #a0a0a0; font-size: 0.9rem; }
+
+button {
+    background: linear-gradient(135deg, #8b2f2f, #c9a961);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(201, 169, 97, 0.4);
+}

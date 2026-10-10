@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fomod>
+    <Name>NPC Studio</Name>
+    <Author>Selenter</Author>
+    <Version>0.1.0</Version>
+    <Description>Полноценный редактор NPC с PrismUI, SkyrimNet AI-биографиями и системой пресетов.</Description>
+    <Groups>
+        <element>NPCs</element>
+    </Groups>
+</fomod>
