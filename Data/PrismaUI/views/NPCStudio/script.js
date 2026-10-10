@@ -1,5 +1,6 @@
 let allNPCs = [];
 let pauseEnabled = false;
+let selectedNPC = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof window.uiReady === 'function') {
@@ -48,6 +49,15 @@ document.addEventListener('DOMContentLoaded', () => {
         btnRefresh.addEventListener('click', () => {
             console.log('Refresh button clicked');
             loadNPCList();
+        });
+    }
+
+    const btnSpawnSelected = document.getElementById('btn-spawn-selected');
+    if (btnSpawnSelected) {
+        btnSpawnSelected.addEventListener('click', () => {
+            if (selectedNPC) {
+                spawnNPC(selectedNPC.formID.toString(16).toUpperCase().padStart(8, '0'));
+            }
         });
     }
 
@@ -135,13 +145,52 @@ function renderNPCList(npcs) {
         li.appendChild(edidSpan);
 
         li.addEventListener('click', () => {
-            spawnNPC(li.dataset.formid);
+            selectNPC(npc);
         });
 
         fragment.appendChild(li);
     }
 
     list.appendChild(fragment);
+}
+
+function selectNPC(npc) {
+    selectedNPC = npc;
+
+    const items = document.querySelectorAll('.npc-item');
+    items.forEach(item => item.classList.remove('selected'));
+    
+    const formIdHex = npc.formID.toString(16).toUpperCase().padStart(8, '0');
+    const selectedItem = document.querySelector(`.npc-item[data-formid="${formIdHex}"]`);
+    if (selectedItem) {
+        selectedItem.classList.add('selected');
+    }
+
+    const placeholder = document.querySelector('.preview-placeholder');
+    const content = document.getElementById('preview-content');
+    
+    if (placeholder) placeholder.style.display = 'none';
+    if (content) content.style.display = 'flex';
+
+    document.getElementById('preview-name').textContent = npc.name || 'Unknown NPC';
+    document.getElementById('preview-editorid').textContent = npc.editorID || 'N/A';
+    document.getElementById('preview-formid').textContent = formIdHex;
+    document.getElementById('preview-race').textContent = npc.race || 'N/A';
+    document.getElementById('preview-gender').textContent = npc.gender || 'N/A';
+    document.getElementById('preview-level').textContent = npc.level || 'N/A';
+
+    updateModelPreview(formIdHex);
+}
+
+function updateModelPreview(formIdHex) {
+    const modelView = document.getElementById('npc-model');
+    if (modelView) {
+        modelView.setAttribute('formid', formIdHex);
+        
+        if (typeof window.requestNPCPreview === 'function') {
+            window.requestNPCPreview(formIdHex);
+        }
+    }
 }
 
 function spawnNPC(formIdHex) {
