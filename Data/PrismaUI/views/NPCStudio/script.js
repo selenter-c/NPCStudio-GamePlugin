@@ -43,6 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const btnRefresh = document.getElementById('btn-refresh');
+    if (btnRefresh) {
+        btnRefresh.addEventListener('click', () => {
+            console.log('Refresh button clicked');
+            loadNPCList();
+        });
+    }
+
     loadNPCList();
 
     document.addEventListener('keydown', (e) => {

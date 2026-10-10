@@ -90,10 +90,13 @@ h1 {
 .search-box {
     margin-bottom: 0.8rem;
     flex-shrink: 0;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
 }
 
 .search-box input {
-    width: 100%;
+    flex: 1;
     padding: 0.6rem 1rem;
     background: rgba(40, 40, 60, 0.8);
     border: 1px solid #555;
@@ -111,6 +114,23 @@ h1 {
 
 .search-box input::placeholder {
     color: #707070;
+}
+
+.btn-refresh {
+    background: rgba(60, 60, 80, 0.8);
+    border: 1px solid #555;
+    color: #c9a961;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.4rem 0.7rem;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.btn-refresh:hover {
+    background: rgba(201, 169, 97, 0.2);
+    border-color: #c9a961;
 }
 
 .npc-list-container {
