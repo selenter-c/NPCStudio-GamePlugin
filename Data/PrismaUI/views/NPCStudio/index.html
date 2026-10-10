@@ -27,12 +27,17 @@
                 </div>
             </div>
             <div class="right-panel" id="preview-panel">
-                <div class="preview-placeholder">
+                <div class="preview-placeholder" id="preview-placeholder">
+                    <span class="placeholder-icon">👤</span>
                     <span class="placeholder-text">Выберите NPC для предпросмотра</span>
                 </div>
                 <div class="preview-content" id="preview-content" style="display: none;">
-                    <div class="model-container">
-                        <modelview id="npc-model" class="npc-model-view"></modelview>
+                    <div class="model-container" id="model-container">
+                        <canvas id="npc-canvas"></canvas>
+                        <div class="controls-hint">
+                            <span>ЛКМ: Вращение</span>
+                            <span>Колесо: Масштаб</span>
+                        </div>
                     </div>
                     <div class="npc-info">
                         <h2 class="npc-preview-name" id="preview-name"></h2>
@@ -68,6 +73,7 @@
             <button id="btn-test" class="btn-test">Test</button>
         </footer>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

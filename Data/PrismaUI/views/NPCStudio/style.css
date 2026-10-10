@@ -222,9 +222,16 @@ h1 {
 .preview-placeholder {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 2rem;
+    gap: 1rem;
+}
+
+.placeholder-icon {
+    font-size: 4rem;
+    opacity: 0.3;
 }
 
 .placeholder-text {
@@ -244,12 +251,38 @@ h1 {
 
 .model-container {
     width: 100%;
-    height: 250px;
-    background: rgba(20, 20, 35, 0.8);
+    height: 300px;
+    background: radial-gradient(ellipse at center, #2a2a3e 0%, #14141e 100%);
     border: 1px solid #555;
     border-radius: 4px;
     overflow: hidden;
     position: relative;
+}
+
+.model-container canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    outline: none;
+}
+
+.controls-hint {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 1rem;
+    background: rgba(30, 30, 45, 0.8);
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    border: 1px solid rgba(201, 169, 97, 0.3);
+    pointer-events: none;
+}
+
+.controls-hint span {
+    color: #a0a0a0;
+    font-size: 0.7rem;
 }
 
 .npc-model-view {
