@@ -9,12 +9,24 @@
     <div id="app">
         <header class="header">
             <h1>🎭 Студия NPC</h1>
-            <span class="hint">SHIFT + 8 — открыть / ESC — закрыть</span>
+            <div class="header-buttons">
+                <button id="btn-pause" class="btn-icon" title="Пауза игры">⏸</button>
+                <button id="btn-close-x" class="close-x" title="Закрыть">×</button>
+            </div>
         </header>
         <main>
-            <p>Stage 2 — базовый UI работает.</p>
-            <p>Проверка кириллицы: <strong>Артур Тень, Селена Звезда</strong></p>
-            <button id="btn-close">Закрыть</button>
+            <div class="search-box">
+                <input type="text" id="npc-search" placeholder="Поиск NPC..." autocomplete="off">
+            </div>
+            <div class="npc-list-container">
+                <ul id="npc-list" class="npc-list">
+                    <li class="npc-loading">Загрузка списка NPC...</li>
+                </ul>
+            </div>
+            <div class="footer">
+                <span class="version">v0.1.0 | Selenter</span>
+                <button id="btn-test" class="btn-test">Test</button>
+            </div>
         </main>
     </div>
     <script src="script.js"></script>
