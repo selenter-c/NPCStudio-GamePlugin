@@ -190,11 +190,12 @@ function selectNPC(npc) {
     document.getElementById('preview-gender').textContent = npc.gender || 'N/A';
     document.getElementById('preview-level').textContent = npc.level || 'N/A';
 
-    updateNifViewerStatus('Загрузка модели...');
+    updateNifViewerStatus('Загрузка полного NPC...');
 
-    // Request native side to resolve NPC mesh path by FormID
-    sendNifViewerCommand('getNPCMeshPath', {
-        formID: npc.formID
+    sendNifViewerCommand('loadNPC', {
+        formID: npc.formID,
+        width: 512,
+        height: 512
     });
 }
 
@@ -274,6 +275,17 @@ function handleNifViewerEvent(event) {
         case 'error':
             updateNifViewerStatus('Ошибка: ' + (data.message || 'Неизвестная ошибка'));
             console.error('NIF Viewer error:', data.code, data.message);
+            break;
+
+        case 'npcLoaded':
+            if (data.success) {
+                updateNifViewerStatus('NPC загружен');
+                if (data.frameData) {
+                    displayNifFrame(data.frameData);
+                }
+            } else {
+                updateNifViewerStatus('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+            }
             break;
 
         case 'npcMeshPath':
