@@ -2,16 +2,12 @@ let allNPCs = [];
 let pauseEnabled = false;
 let selectedNPC = null;
 
-let scene, camera, renderer, currentModel;
+let nifViewerReady = false;
+let nifViewerRequestId = 0;
 let isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
-let spherical = { radius: 5, theta: Math.PI / 4, phi: Math.PI / 3 };
-let targetLookAt = new THREE.Vector3(0, 1, 0);
-let previewInitialized = false;
-
-const MIN_RADIUS = 1;
-const MAX_RADIUS = 20;
-const ROTATION_SPEED = 0.005;
+let pendingRotate = { deltaYaw: 0, deltaPitch: 0 };
+let rotateRAF = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof window.uiReady === 'function') {
@@ -72,6 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    initNifViewerControls();
+
     loadNPCList();
 
     document.addEventListener('keydown', (e) => {
@@ -81,6 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    sendNifViewerCommand('ready', {});
 });
 
 window.setInitialState = function(jsonStr) {
@@ -190,239 +190,220 @@ function selectNPC(npc) {
     document.getElementById('preview-gender').textContent = npc.gender || 'N/A';
     document.getElementById('preview-level').textContent = npc.level || 'N/A';
 
-    setTimeout(() => {
-        initPreview();
-        updateModelPreview(formIdHex);
-    }, 50);
-}
+    updateNifViewerStatus('Загрузка модели...');
 
-function initPreview() {
-    const canvas = document.getElementById('npc-canvas');
-    const container = document.getElementById('model-container');
-    if (!canvas || !container) return;
-
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-    
-    if (width === 0 || height === 0) return;
-
-    if (!previewInitialized) {
-        scene = new THREE.Scene();
-
-        camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-        updateCameraPosition();
-
-        renderer = new THREE.WebGLRenderer({ 
-            canvas: canvas, 
-            antialias: true,
-            alpha: true 
-        });
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-        setupLights();
-        createPlaceholderModel();
-        setupEventListeners(canvas);
-        animate();
-
-        previewInitialized = true;
-    }
-    
-    renderer.setSize(width, height);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-}
-
-function setupLights() {
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-    scene.add(ambientLight);
-
-    const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    mainLight.position.set(5, 10, 7);
-    mainLight.castShadow = true;
-    mainLight.shadow.mapSize.width = 1024;
-    mainLight.shadow.mapSize.height = 1024;
-    scene.add(mainLight);
-
-    const fillLight = new THREE.DirectionalLight(0xc9a961, 0.3);
-    fillLight.position.set(-5, 5, -5);
-    scene.add(fillLight);
-
-    const rimLight = new THREE.DirectionalLight(0x6688cc, 0.4);
-    rimLight.position.set(0, 5, -10);
-    scene.add(rimLight);
-}
-
-function createPlaceholderModel() {
-    if (currentModel) {
-        scene.remove(currentModel);
-    }
-
-    currentModel = new THREE.Group();
-
-    const bodyMaterial = new THREE.MeshStandardMaterial({ 
-        color: 0x888888, 
-        roughness: 0.7,
-        metalness: 0.1
+    // Request native side to resolve NPC mesh path by FormID
+    sendNifViewerCommand('getNPCMeshPath', {
+        formID: npc.formID
     });
-
-    const torsoGeo = new THREE.CylinderGeometry(0.25, 0.2, 0.7, 12);
-    const torso = new THREE.Mesh(torsoGeo, bodyMaterial);
-    torso.position.y = 1.1;
-    torso.castShadow = true;
-    currentModel.add(torso);
-
-    const headGeo = new THREE.SphereGeometry(0.18, 16, 16);
-    const head = new THREE.Mesh(headGeo, bodyMaterial);
-    head.position.y = 1.6;
-    head.castShadow = true;
-    currentModel.add(head);
-
-    const neckGeo = new THREE.CylinderGeometry(0.08, 0.1, 0.15, 8);
-    const neck = new THREE.Mesh(neckGeo, bodyMaterial);
-    neck.position.y = 1.42;
-    currentModel.add(neck);
-
-    const hipGeo = new THREE.CylinderGeometry(0.22, 0.2, 0.2, 12);
-    const hip = new THREE.Mesh(hipGeo, bodyMaterial);
-    hip.position.y = 0.65;
-    hip.castShadow = true;
-    currentModel.add(hip);
-
-    const upperArmGeo = new THREE.CylinderGeometry(0.07, 0.06, 0.4, 8);
-    
-    const leftUpperArm = new THREE.Mesh(upperArmGeo, bodyMaterial);
-    leftUpperArm.position.set(-0.35, 1.25, 0);
-    leftUpperArm.rotation.z = 0.2;
-    leftUpperArm.castShadow = true;
-    currentModel.add(leftUpperArm);
-
-    const rightUpperArm = new THREE.Mesh(upperArmGeo, bodyMaterial);
-    rightUpperArm.position.set(0.35, 1.25, 0);
-    rightUpperArm.rotation.z = -0.2;
-    rightUpperArm.castShadow = true;
-    currentModel.add(rightUpperArm);
-
-    const lowerArmGeo = new THREE.CylinderGeometry(0.06, 0.05, 0.4, 8);
-    
-    const leftLowerArm = new THREE.Mesh(lowerArmGeo, bodyMaterial);
-    leftLowerArm.position.set(-0.42, 0.9, 0);
-    leftLowerArm.rotation.z = 0.1;
-    leftLowerArm.castShadow = true;
-    currentModel.add(leftLowerArm);
-
-    const rightLowerArm = new THREE.Mesh(lowerArmGeo, bodyMaterial);
-    rightLowerArm.position.set(0.42, 0.9, 0);
-    rightLowerArm.rotation.z = -0.1;
-    rightLowerArm.castShadow = true;
-    currentModel.add(rightLowerArm);
-
-    const upperLegGeo = new THREE.CylinderGeometry(0.09, 0.07, 0.5, 8);
-    
-    const leftUpperLeg = new THREE.Mesh(upperLegGeo, bodyMaterial);
-    leftUpperLeg.position.set(-0.12, 0.35, 0);
-    leftUpperLeg.castShadow = true;
-    currentModel.add(leftUpperLeg);
-
-    const rightUpperLeg = new THREE.Mesh(upperLegGeo, bodyMaterial);
-    rightUpperLeg.position.set(0.12, 0.35, 0);
-    rightUpperLeg.castShadow = true;
-    currentModel.add(rightUpperLeg);
-
-    const lowerLegGeo = new THREE.CylinderGeometry(0.07, 0.05, 0.5, 8);
-    
-    const leftLowerLeg = new THREE.Mesh(lowerLegGeo, bodyMaterial);
-    leftLowerLeg.position.set(-0.12, -0.1, 0);
-    leftLowerLeg.castShadow = true;
-    currentModel.add(leftLowerLeg);
-
-    const rightLowerLeg = new THREE.Mesh(lowerLegGeo, bodyMaterial);
-    rightLowerLeg.position.set(0.12, -0.1, 0);
-    rightLowerLeg.castShadow = true;
-    currentModel.add(rightLowerLeg);
-
-    const groundGeo = new THREE.CircleGeometry(1.5, 32);
-    const groundMat = new THREE.MeshStandardMaterial({ 
-        color: 0x333344,
-        roughness: 0.9
-    });
-    const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.35;
-    ground.receiveShadow = true;
-    currentModel.add(ground);
-
-    scene.add(currentModel);
-}
-
-function updateCameraPosition() {
-    const x = spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
-    const y = spherical.radius * Math.cos(spherical.phi);
-    const z = spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
-
-    camera.position.set(x, y + 1, z);
-    camera.lookAt(targetLookAt);
-}
-
-function setupEventListeners(canvas) {
-    canvas.addEventListener('mousedown', onMouseDown);
-    canvas.addEventListener('mousemove', onMouseMove);
-    canvas.addEventListener('mouseup', onMouseUp);
-    canvas.addEventListener('mouseleave', onMouseUp);
-    canvas.addEventListener('wheel', onWheel);
-    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-}
-
-function onMouseDown(event) {
-    event.preventDefault();
-    if (event.button === 0) {
-        isDragging = true;
-    }
-    previousMousePosition = { x: event.clientX, y: event.clientY };
-}
-
-function onMouseMove(event) {
-    const deltaX = event.clientX - previousMousePosition.x;
-    const deltaY = event.clientY - previousMousePosition.y;
-    previousMousePosition = { x: event.clientX, y: event.clientY };
-
-    if (isDragging) {
-        spherical.theta -= deltaX * ROTATION_SPEED;
-        spherical.phi -= deltaY * ROTATION_SPEED;
-        spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
-        updateCameraPosition();
-    }
-}
-
-function onMouseUp() {
-    isDragging = false;
-}
-
-function onWheel(event) {
-    event.preventDefault();
-    const delta = event.deltaY * 0.01;
-    spherical.radius += delta;
-    spherical.radius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, spherical.radius));
-    updateCameraPosition();
-}
-
-function animate() {
-    requestAnimationFrame(animate);
-    if (renderer && scene && camera) {
-        renderer.render(scene, camera);
-    }
-}
-
-function updateModelPreview(formIdHex) {
-    console.log('Loading NPC preview:', formIdHex);
-    
-    if (typeof window.requestNPCPreview === 'function') {
-        window.requestNPCPreview(formIdHex);
-    }
 }
 
 function spawnNPC(formIdHex) {
     if (typeof window.spawnNPC === 'function') {
         window.spawnNPC(formIdHex);
     }
+}
+
+function sendNifViewerCommand(command, payload) {
+    if (typeof window.nifViewerCommand !== 'function') {
+        console.warn('nifViewerCommand not available');
+        return;
+    }
+
+    const msg = {
+        command: command,
+        requestId: ++nifViewerRequestId,
+        payload: payload
+    };
+
+    try {
+        window.nifViewerCommand(JSON.stringify(msg));
+    } catch (e) {
+        console.error('Failed to send NIF viewer command:', e);
+    }
+}
+
+window.onNifViewerEvent = function(jsonStr) {
+    try {
+        const event = JSON.parse(jsonStr);
+        handleNifViewerEvent(event);
+    } catch (e) {
+        console.error('Failed to parse NIF viewer event:', e);
+    }
+};
+
+function handleNifViewerEvent(event) {
+    const eventType = event.event || (event.data && event.data.event);
+    const data = event.data || event;
+
+    switch (eventType) {
+        case 'ready':
+            nifViewerReady = true;
+            updateNifViewerStatus('Готов к загрузке моделей');
+            console.log('NIF Viewer ready');
+            break;
+
+        case 'modelLoaded':
+            if (data.success) {
+                updateNifViewerStatus('Модель загружена');
+                if (data.frameData) {
+                    displayNifFrame(data.frameData);
+                }
+            } else {
+                updateNifViewerStatus('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+            }
+            break;
+
+        case 'frameUpdated':
+            if (data.frameData) {
+                displayNifFrame(data.frameData);
+            }
+            break;
+
+        case 'resized':
+            if (data.frameData) {
+                displayNifFrame(data.frameData);
+            }
+            break;
+
+        case 'modelUnloaded':
+            clearNifFrame();
+            updateNifViewerStatus('Модель выгружена');
+            break;
+
+        case 'error':
+            updateNifViewerStatus('Ошибка: ' + (data.message || 'Неизвестная ошибка'));
+            console.error('NIF Viewer error:', data.code, data.message);
+            break;
+
+        case 'npcMeshPath':
+            if (data.success && data.meshPath) {
+                console.log('NPC mesh path resolved:', data.meshPath);
+                sendNifViewerCommand('loadModel', {
+                    assetPath: data.meshPath,
+                    width: 512,
+                    height: 512
+                });
+            } else {
+                updateNifViewerStatus('Не удалось определить путь к модели');
+            }
+            break;
+
+        case 'status':
+            console.log('NIF Viewer status:', data);
+            break;
+
+        default:
+            console.log('Unknown NIF viewer event:', eventType);
+    }
+}
+
+function displayNifFrame(base64Data) {
+    const img = document.getElementById('nif-viewer-image');
+    if (img) {
+        img.src = 'data:image/png;base64,' + base64Data;
+        img.style.display = 'block';
+    }
+
+    const placeholder = document.getElementById('nif-viewer-placeholder');
+    if (placeholder) {
+        placeholder.style.display = 'none';
+    }
+
+    updateNifViewerStatus('');
+}
+
+function clearNifFrame() {
+    const img = document.getElementById('nif-viewer-image');
+    if (img) {
+        img.src = '';
+        img.style.display = 'none';
+    }
+
+    const placeholder = document.getElementById('nif-viewer-placeholder');
+    if (placeholder) {
+        placeholder.style.display = 'flex';
+    }
+}
+
+function updateNifViewerStatus(message) {
+    const status = document.getElementById('nif-viewer-status');
+    if (status) {
+        status.textContent = message;
+        status.style.display = message ? 'block' : 'none';
+    }
+}
+
+function initNifViewerControls() {
+    const container = document.getElementById('model-container');
+    if (!container) return;
+
+    container.addEventListener('mousedown', onNifMouseDown);
+    container.addEventListener('mousemove', onNifMouseMove);
+    container.addEventListener('mouseup', onNifMouseUp);
+    container.addEventListener('mouseleave', onNifMouseUp);
+    container.addEventListener('wheel', onNifWheel);
+    container.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    const btnReset = document.getElementById('nif-camera-reset');
+    if (btnReset) {
+        btnReset.addEventListener('click', () => {
+            sendNifViewerCommand('resetCamera', {});
+        });
+    }
+
+    const btnZoomIn = document.getElementById('nif-zoom-in');
+    if (btnZoomIn) {
+        btnZoomIn.addEventListener('click', () => {
+            sendNifViewerCommand('zoom', { delta: 0.5 });
+        });
+    }
+
+    const btnZoomOut = document.getElementById('nif-zoom-out');
+    if (btnZoomOut) {
+        btnZoomOut.addEventListener('click', () => {
+            sendNifViewerCommand('zoom', { delta: -0.5 });
+        });
+    }
+}
+
+function onNifMouseDown(event) {
+    if (event.button === 0) {
+        isDragging = true;
+        previousMousePosition = { x: event.clientX, y: event.clientY };
+        event.preventDefault();
+    }
+}
+
+function onNifMouseMove(event) {
+    if (!isDragging) return;
+
+    const deltaX = event.clientX - previousMousePosition.x;
+    const deltaY = event.clientY - previousMousePosition.y;
+    previousMousePosition = { x: event.clientX, y: event.clientY };
+
+    pendingRotate.deltaYaw += deltaX * 0.5;
+    pendingRotate.deltaPitch -= deltaY * 0.5;
+
+    if (!rotateRAF) {
+        rotateRAF = requestAnimationFrame(() => {
+            sendNifViewerCommand('rotate', {
+                deltaYaw: pendingRotate.deltaYaw,
+                deltaPitch: pendingRotate.deltaPitch
+            });
+            pendingRotate.deltaYaw = 0;
+            pendingRotate.deltaPitch = 0;
+            rotateRAF = null;
+        });
+    }
+}
+
+function onNifMouseUp() {
+    isDragging = false;
+}
+
+function onNifWheel(event) {
+    event.preventDefault();
+    const delta = event.deltaY * -0.002;
+    sendNifViewerCommand('zoom', { delta: delta });
 }

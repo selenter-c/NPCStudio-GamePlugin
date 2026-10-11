@@ -33,10 +33,24 @@
                 </div>
                 <div class="preview-content" id="preview-content" style="display: none;">
                     <div class="model-container" id="model-container">
-                        <canvas id="npc-canvas"></canvas>
+                        <div id="nif-viewer-status" class="nif-viewer-status" style="display: none;"></div>
+                        
+                        <div id="nif-viewer-placeholder" class="nif-viewer-placeholder">
+                            <span class="placeholder-icon">🎲</span>
+                            <span>3D превью</span>
+                        </div>
+                        
+                        <img id="nif-viewer-image" class="nif-viewer-image" alt="3D модель" style="display: none;" />
+                        
                         <div class="controls-hint">
                             <span>ЛКМ: Вращение</span>
                             <span>Колесо: Масштаб</span>
+                        </div>
+                        
+                        <div class="nif-viewer-controls">
+                            <button id="nif-camera-reset" type="button" title="Сброс камеры">⟲</button>
+                            <button id="nif-zoom-in" type="button" title="Приблизить">+</button>
+                            <button id="nif-zoom-out" type="button" title="Отдалить">−</button>
                         </div>
                     </div>
                     <div class="npc-info">
@@ -73,7 +87,6 @@
             <button id="btn-test" class="btn-test">Test</button>
         </footer>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
