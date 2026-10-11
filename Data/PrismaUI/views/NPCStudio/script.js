@@ -284,7 +284,16 @@ function handleNifViewerEvent(event) {
                     displayNifFrame(data.frameData);
                 }
             } else {
-                updateNifViewerStatus('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+                const errCode = data.errorCode || '';
+                const errMsg = data.error || 'Неизвестная ошибка';
+                if (errCode === 'NO_FACEGEN_CREATURE') {
+                    updateNifViewerStatus('⚠ ' + errMsg);
+                } else if (errCode === 'FACEGEN_NOT_FOUND') {
+                    updateNifViewerStatus('⚠ FaceGen не найден');
+                } else {
+                    updateNifViewerStatus('Ошибка: ' + errMsg);
+                }
+                clearNifFrame();
             }
             break;
 
