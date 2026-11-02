@@ -24,9 +24,12 @@
         <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2" />
       </symbol>
       <symbol id="i-dice" viewBox="0 0 24 24">
-        <path
-          d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2ZM7 7h.01M17 7h.01M12 12h.01M7 17h.01M17 17h.01"
-        />
+        <circle cx="7" cy="7" r="1.3" fill="currentColor" stroke="none" />
+        <circle cx="17" cy="7" r="1.3" fill="currentColor" stroke="none" />
+        <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none" />
+        <circle cx="7" cy="17" r="1.3" fill="currentColor" stroke="none" />
+        <circle cx="17" cy="17" r="1.3" fill="currentColor" stroke="none" />
+        <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
       </symbol>
       <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6" /></symbol>
       <symbol id="i-refresh" viewBox="0 0 24 24">
@@ -42,14 +45,18 @@
     <main class="studio">
       <header>
         <div class="brand">
-          <span class="brand-mark">◇</span>
+          <svg class="brand-mark icon" viewBox="0 0 40 40" aria-hidden="true">
+            <path
+              d="M14 12a6 6 0 1 1 12 0c0 4-3 7-6 7s-6-3-6-7ZM8 34v-4c0-6 5-10 12-10s12 4 12 10v4M5 8V3h5M30 3h5v5M35 30v5h-5M10 35H5v-5"
+            />
+            <path d="m30 12 2 3 4 1-4 2-2 4-1-4-4-2 4-1Z" />
+          </svg>
           <div>
-            <h1>NPC STUDIO <small>0.4</small></h1>
-            <span class="eyebrow">МАСТЕРСКАЯ ПЕРСОНАЖЕЙ</span>
+            <h1>NPC STUDIO <small>0.5</small></h1>
+            <span class="eyebrow">ПЕРСОНАЖИ, КОТОРЫЕ ОСТАНУТСЯ В ВАШЕМ МИРЕ</span>
           </div>
         </div>
-        <span id="connection" class="connection">Подключение…</span
-        ><button id="close" class="icon-button" aria-label="Закрыть">
+        <button id="close" class="icon-button" aria-label="Закрыть">
           <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
         </button>
       </header>
@@ -79,7 +86,7 @@
           ><label>Мужские <b id="maleCount">0 / 200</b></label
           ><progress id="maleProgress" max="200" value="0"></progress>
         </div>
-        <span id="hotkeyHint" class="hotkey">Shift + F8</span>
+        <span id="hotkeyHint" class="hotkey">Shift + 8</span>
       </aside>
       <div class="workspace">
         <div class="workspace-head">
@@ -124,6 +131,7 @@
                   </select></label
                 ><label>Слот<select id="slotSelect"></select></label>
               </div>
+              <label>Раса<select id="creationRace"></select></label>
               <p id="slotInfo" class="muted small"></p>
               <div class="section-line"></div>
               <div class="card-heading">
@@ -169,6 +177,38 @@
               <div id="list" class="roster-list"></div>
               <p id="empty" class="muted">Персонажей пока нет.</p>
             </div>
+            <div class="card model-card">
+              <div class="card-heading">
+                <svg class="icon"><use href="#i-person" /></svg>
+                <h3>3D-превью</h3>
+                <button id="previewRefresh" class="icon-button" title="Обновить модель">
+                  <svg class="icon"><use href="#i-refresh" /></svg>
+                </button>
+              </div>
+              <div id="previewViewport" class="preview-viewport">
+                <img id="previewImage" alt="3D-превью персонажа" draggable="false" hidden />
+                <div id="previewEmpty" class="preview-empty">
+                  <svg class="icon"><use href="#i-person" /></svg>
+                  <p>Выберите персонажа для просмотра</p>
+                </div>
+              </div>
+              <p id="previewStatus" class="muted small"></p>
+              <div class="preview-controls">
+                <label>Поворот<input id="previewYaw" type="range" min="-180" max="180" value="0" /></label
+                ><label>Масштаб<input id="previewZoom" type="range" min="0.5" max="2.5" step="0.1" value="1" /></label>
+              </div>
+              <label
+                >Освещение<select id="previewLight">
+                  <option value="0">Студия</option>
+                  <option value="1">Тёплый свет</option>
+                  <option value="2">Холодный свет</option>
+                </select></label
+              >
+              <p class="muted small">
+                Перетащите модель для поворота. Обновите превью после смены одежды. Студийный свет отличается от
+                игрового.
+              </p>
+            </div>
             <div class="card inspector">
               <div class="card-heading">
                 <svg class="icon" aria-hidden="true"><use href="#i-person" /></svg>
@@ -190,6 +230,10 @@
                   <span>Раса</span><b id="race"></b><span>Ссылка</span><code id="reference"></code><span>Состояние</span
                   ><b id="status"></b>
                 </div>
+                <label>Изменить расу<select id="editRace"></select></label><button id="setRace">Применить расу</button>
+                <p class="muted small">
+                  Смена расы пересобирает голову и тело. Сохраните отдельную копию игры перед изменением внешности.
+                </p>
                 <p id="actorWarning" class="muted small"></p>
                 <div class="action-grid">
                   <button id="summon">Призвать</button><button id="teleport">Перейти к NPC</button
@@ -277,11 +321,30 @@
         </section>
         <section id="settingsPage" class="page" hidden>
           <div class="card settings-card">
+            <h3>Язык и оформление</h3>
+            <p class="muted small">
+              При первом запуске используется язык Windows. Ваш выбор сохраняется для всех сохранений.
+            </p>
+            <div class="form-grid">
+              <label
+                >Язык<select id="language">
+                  <option value="ru">Русский</option>
+                  <option value="en">English</option>
+                </select></label
+              ><label
+                >Палитра<select id="theme">
+                  <option value="amethyst">Аметист</option>
+                  <option value="emerald">Изумруд</option>
+                  <option value="sapphire">Сапфир</option>
+                  <option value="ember">Тлеющий янтарь</option>
+                </select></label
+              >
+            </div>
             <div class="card-heading">
               <svg class="icon" aria-hidden="true"><use href="#i-settings" /></svg>
               <h3>Открытие интерфейса</h3>
             </div>
-            <p class="muted">По умолчанию Shift + F8. Настройки общие для сохранений текущей установки мода.</p>
+            <p class="muted">По умолчанию Shift + 8. Настройки общие для сохранений текущей установки мода.</p>
             <label>Основная клавиша<select id="hotkeyKey"></select></label><label>Модификаторы</label>
             <div class="modifier-options">
               <label><input type="checkbox" id="modifierShift" /> Shift</label
@@ -297,8 +360,12 @@
           </div>
         </section>
       </div>
-      <footer><span id="message" role="status">Готово</span><span>MAGELIGHT UI · SKYRIM 1.6.1170</span></footer>
+      <footer>
+        <span id="tip"></span><span id="message" class="toast" role="status" hidden></span
+        ><span>MAGELIGHT UI · SKYRIM 1.6.1170</span>
+      </footer>
     </main>
+    <script src="i18n.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

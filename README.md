@@ -1,13 +1,9 @@
-# NPCStudio — игровые файлы 0.4
+# NPCStudio — игровые файлы 0.5
 
-Skyrim1.6.1170, SKSE, Address Library, Magelight UI1.5+. Открытие Shift+F8, клавиши настраиваются в меню.
+Skyrim 1.6.1170, SKSE, Address Library, Magelight UI 1.5+. Открытие Shift+8. English/Русский, четыре палитры, расы при создании/редактировании, экспериментальный рендер/портреты. Подробные возможности, ограничения и ручной тест — в соседнем NativePlugin/README.md.
 
-Пул 200+200 уникальных баз, 400 persistent initially-disabled ссылок, 400 цветов, резервная CELL и XMarker. Итого1202 собственные формы в диапазоне800..FFF, флаг ESL сохранён. Старые id0..159 и 480NPC_/ACHR/CLFM побайтово неизменны.
+ESP с версии0.4 не меняется: 200+200 уникальных баз, 400 persistent initially-disabled ссылок и 400 цветов. CELL800, XMarker801. Всего1202 формы, ESL. Старые id0..159: CLFM900+id, NPCA00+id, ACHRB00+id. Новые id160..399: offset=id-160, CLFMC00+offset, NPCD00+offset, ACHRE00+offset. Female0..79,160..279; male80..159,280..399. Номера1..200 отдельно по полу.
 
-Старые адреса: CLFM900+id, NPCA00+id, ACHRB00+id. Новые id160..399: offset=id-160, CLFMC00+offset, NPCD00+offset, ACHRE00+offset. Female0..79,160..279; male80..159,280..399. Порядковые номера в интерфейсе1..200 отдельно по полу.
+Data/Magelight — UI + i18n.js. Equipment —40 наборов с категориями. NPCStudio_NND_DISTR.ini — необязательная совместимость NND/SPID. Legacy не пакуется.
 
-Data/Magelight — новый UI. Equipment —40 готовых наборов с категориями. NPCStudio_NND_DISTR.ini — совместимость имён, без новой обязательной зависимости. Legacy/0.1.0 не включается.
-
-При обновлении сохраняйте пользовательские Equipment/user-*.json, categories.json и settings.json, в том числе MO2 overwrite. DLL/UI/ESP/slots.json обновлять вместе. Старые co-save читаются, история свободных старых слотов неизвестна. Перед обновлением сделайте отдельное сохранение для отката.
-
-Нужен NPCStudio.dll из соседнего проекта. Сборка: NPCStudio-Build/build.bat. Новые функции0.4 ещё требуют ручного теста в игре; подробно — NativePlugin/README.md и docs/STATE.md.
+Обновление ZIP целиком при закрытой игре, отдельный сейв для отката. Сохранить user-*.json/categories.json/settings.json и файлы MO2 overwrite. Сборка: NPCStudio-Build/build.bat. 0.4 проверена пользователем, 0.5 пока проверена сборкой/WARP/mock, реальный рендер NPC проверяется вручную.

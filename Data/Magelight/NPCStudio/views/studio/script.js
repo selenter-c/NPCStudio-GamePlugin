@@ -2,6 +2,7 @@ const Elements = Object.fromEntries([...document.querySelectorAll('[id]')].map((
 let State = null
 let SelectedId = null
 let CurrentTab = 'create'
+let UIVisible = true
 let Equipment = null
 let EquipmentOwnerId = null
 let EquipmentBusy = false
@@ -11,11 +12,11 @@ let SettingsDirty = false
 let NextRequestId = 0
 const Pending = new Map()
 const Pages = {
-  create: ['СОЗДАНИЕ', 'Новый персонаж'],
-  roster: ['ПОСТОЯННЫЙ РЕЗЕРВ', 'Мои персонажи'],
-  equipment: ['ПРЕДМЕТЫ И ЭКИПИРОВКА', 'Снаряжение'],
-  presets: ['ГОТОВЫЕ И СВОИ КОМПЛЕКТЫ', 'Библиотека наборов'],
-  settings: ['ПАРАМЕТРЫ СТУДИИ', 'Настройки'],
+  create: [T('СОЗДАНИЕ'), T('Новый персонаж')],
+  roster: [T('ПОСТОЯННЫЙ РЕЗЕРВ'), T('Мои персонажи')],
+  equipment: [T('ПРЕДМЕТЫ И ЭКИПИРОВКА'), T('Снаряжение')],
+  presets: [T('ГОТОВЫЕ И СВОИ КОМПЛЕКТЫ'), T('Библиотека наборов')],
+  settings: [T('ПАРАМЕТРЫ СТУДИИ'), T('Настройки')],
 }
 const Icon = (Name) => {
   const Svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
@@ -26,7 +27,15 @@ const Icon = (Name) => {
   return Svg
 }
 function Message(Text, IsError = false) {
-  Elements.message.textContent = Text
+  clearTimeout(Message.timer)
+  Elements.message.hidden = false
+  Elements.message.textContent = T(Text)
+  Message.timer = setTimeout(
+    () => {
+      Elements.message.hidden = true
+    },
+    IsError ? 14000 : 6500,
+  )
   Elements.message.classList.toggle('error', IsError)
 }
 function CurrentActor() {
@@ -45,17 +54,17 @@ function CanChange() {
     !MutationBusy
   )
 }
-function Send(Action, Payload = {}) {
-  if (!window.magelight) return Promise.reject(new Error('Нет подключения к игре'))
+function Send(Action, Payload = {}, Quiet = false) {
+  if (!window.magelight) return Promise.reject(new Error(T('Нет подключения к игре')))
   if (Payload.id !== undefined && Payload.identity === undefined)
     Payload = { ...Payload, identity: State?.slots.find((Slot) => Slot.id === Payload.id)?.identity }
   const RequestId = ++NextRequestId
   return new Promise((Resolve, Reject) => {
     const Timeout = setTimeout(() => {
       Pending.delete(RequestId)
-      Reject(new Error('Игра не ответила. Обновите данные перед повторным действием'))
+      Reject(new Error(T('Игра не ответила. Обновите данные перед повторным действием')))
     }, 15000)
-    Pending.set(RequestId, { Resolve, Reject, Timeout })
+    Pending.set(RequestId, { Resolve, Reject, Timeout, Quiet })
     window.magelight.send('studioCommand', { action: Action, requestId: RequestId, ...Payload })
   })
 }
@@ -68,12 +77,18 @@ window.studioResponse = (Payload) => {
       Pending.delete(Response.requestId)
     }
     if (!Response.ok) {
-      const Failure = new Error(Response.error || 'Ошибка команды')
+      const Failure = new Error(Response.error || T('Ошибка команды'))
       Request?.Reject(Failure)
-      Message(Failure.message, true)
+      if (!Request?.Quiet) Message(Failure.message, true)
       return
     }
     State = Response.state
+    if (State.portrait) Portraits.set(State.portrait.identity, State.portrait.portrait)
+    if (State.preview) {
+      PreviewFrame = State.preview
+      if (PreviewFrame.portrait) Portraits.set(PreviewFrame.identity, PreviewFrame.portrait)
+      while (Portraits.size > 80) Portraits.delete(Portraits.keys().next().value)
+    }
     if (State.equipment) {
       Equipment = State.equipment
       EquipmentOwnerId = State.equipmentOwnerId
@@ -92,7 +107,7 @@ function Options(Select, Rows, Preferred) {
       ...Rows.map((Row) => {
         const Option = document.createElement('option')
         Option.value = String(Row.value)
-        Option.textContent = Row.label
+        Option.textContent = T(Row.label)
         Option.disabled = !!Row.disabled
         return Option
       }),
@@ -103,12 +118,16 @@ function Options(Select, Rows, Preferred) {
   RefreshCombo(Select)
 }
 function Chord(Settings) {
-  const Key = KeyOptions.find((Option) => Option.value === Settings?.key)?.label || 'Клавиша ' + Settings?.key
+  const Key = KeyOptions.find((Option) => Option.value === Settings?.key)?.label || T('Клавиша ') + Settings?.key
   return [Settings?.modifiers & 1 && 'Shift', Settings?.modifiers & 2 && 'Ctrl', Settings?.modifiers & 4 && 'Alt', Key]
     .filter(Boolean)
     .join(' + ')
 }
 const KeyOptions = [
+  ...Array.from({ length: 10 }, (_, Index) => ({
+    value: Index === 9 ? 11 : Index + 2,
+    label: String((Index + 1) % 10),
+  })),
   ...Array.from({ length: 10 }, (_, Index) => ({ value: 0x3b + Index, label: 'F' + (Index + 1) })),
   { value: 0x57, label: 'F11' },
   { value: 0x58, label: 'F12' },
@@ -147,9 +166,10 @@ const KeyOptions = [
 ]
 function Render() {
   if (!State) return
-  Elements.connection.textContent = State.ready ? 'Игра подключена' : 'Пул недоступен'
+  ApplyLocale(State.settings.language || 'ru')
+  ApplyTheme(State.settings.theme || 'amethyst')
   Elements.notice.textContent =
-    State.error || (!State.worldLoaded ? 'Загрузите сохранение или начните новую игру.' : '')
+    State.error || (!State.worldLoaded ? T('Загрузите сохранение или начните новую игру.') : '')
   Elements.notice.hidden = !Elements.notice.textContent
   Elements.rosterCount.textContent = State.slots.length
   for (const Sex of ['female', 'male']) {
@@ -162,8 +182,8 @@ function Render() {
   document
     .querySelectorAll('[data-tab]')
     .forEach((Button) => Button.classList.toggle('active', Button.dataset.tab === CurrentTab))
-  Elements.pageEyebrow.textContent = Pages[CurrentTab][0]
-  Elements.pageTitle.textContent = Pages[CurrentTab][1]
+  Elements.pageEyebrow.textContent = T(Pages[CurrentTab][0])
+  Elements.pageTitle.textContent = T(Pages[CurrentTab][1])
   if (SelectedId !== null && !CurrentActor()) {
     SelectedId = null
     Equipment = null
@@ -172,10 +192,10 @@ function Render() {
   Options(
     Elements.actorPicker,
     [
-      { value: '', label: 'Выберите персонажа…' },
+      { value: '', label: T('Не выбран') },
       ...State.slots.map((Slot) => ({
         value: Slot.id,
-        label: Slot.name + ' · ' + (Slot.female ? 'Ж' : 'М') + Slot.number,
+        label: Slot.name + ' · ' + (Slot.female ? T('Ж') : T('М')) + Slot.number,
       })),
     ],
     SelectedId ?? '',
@@ -183,10 +203,16 @@ function Render() {
   Elements.actorPicker.closest('.combo').hidden = CurrentTab === 'create' || CurrentTab === 'settings'
   RenderCreation()
   RenderRoster()
+  RenderPreview()
+  SchedulePortrait()
   RenderLibrary()
   RenderEquipment()
   if (!SettingsDirty) {
     Options(Elements.hotkeyKey, KeyOptions, State.settings.key)
+    Elements.language.value = State.settings.language || 'ru'
+    Elements.theme.value = State.settings.theme || 'amethyst'
+    RefreshCombo(Elements.language)
+    RefreshCombo(Elements.theme)
     Elements.modifierShift.checked = !!(State.settings.modifiers & 1)
     Elements.modifierCtrl.checked = !!(State.settings.modifiers & 2)
     Elements.modifierAlt.checked = !!(State.settings.modifiers & 4)
@@ -195,33 +221,37 @@ function Render() {
 }
 function RenderCreation() {
   const Female = Elements.sex.value === 'female'
+  Options(
+    Elements.creationRace,
+    (State.races || []).map((Race) => ({ value: Race.id, label: RaceLabel(Race) })),
+  )
   const Slots = State.availableSlots.filter((Slot) => Slot.female === Female)
-  const Status = { fresh: 'новый', used: 'использовался', unknown: 'история до 0.4 неизвестна' }
+  const Status = { fresh: T('новый'), used: T('использовался'), unknown: T('история до 0.4 неизвестна') }
   Options(Elements.slotSelect, [
-    { value: '', label: 'Автоматически · сначала новые' },
-    ...Slots.map((Slot) => ({ value: Slot.id, label: 'Слот ' + Slot.number + ' · ' + Status[Slot.history] })),
+    { value: '', label: T('Автоматически · сначала новые') },
+    ...Slots.map((Slot) => ({ value: Slot.id, label: T('Слот ') + Slot.number + ' · ' + Status[Slot.history] })),
   ])
   const Slot = Slots.find((Slot) => String(Slot.id) === Elements.slotSelect.value)
   Elements.slotInfo.textContent = Slot
-    ? 'Слот ' + Slot.number + ': ' + Status[Slot.history] + '.'
-    : 'Свободно: ' + Slots.length + '. Новые слоты имеют приоритет; занятые недоступны.'
+    ? T('Слот ') + Slot.number + ': ' + Status[Slot.history] + '.'
+    : T('Свободно: ') + Slots.length + T('. Новые слоты имеют приоритет; занятые недоступны.')
   const Library = State.library
   Options(Elements.creationCategory, [
-    { value: '', label: 'Все категории' },
+    { value: '', label: T('Все категории') },
     ...Library.categories.map((Name) => ({ value: Name, label: Name })),
   ])
   const Presets = Library.presets.filter(
     (Preset) => !Elements.creationCategory.value || Preset.category === Elements.creationCategory.value,
   )
   Options(Elements.creationPreset, [
-    { value: '', label: 'Без комплекта' },
+    { value: '', label: T('Без комплекта') },
     ...Presets.map((Preset) => ({ value: Preset.id, label: Preset.name, disabled: !Preset.available })),
   ])
   const Preset = Library.presets.find((Item) => Item.id === Elements.creationPreset.value)
   Elements.creationPresetInfo.textContent = Preset
-    ? Preset.error ||
-      Preset.category + ' · ' + Preset.items.length + ' предметов. Снаряжение не меняет фракцию или поведение.'
-    : 'Персонаж появится без дополнительного снаряжения.'
+    ? T(Preset.error) ||
+      T(Preset.category) + ' · ' + Preset.items.length + T(' предметов. Снаряжение не меняет фракцию или поведение.')
+    : T('Персонаж появится без дополнительного снаряжения.')
   Elements.createButton.disabled = MutationBusy || !State.ready || !State.worldLoaded || !Slots.length
   Elements.randomName.disabled = MutationBusy || !State.ready || !State.worldLoaded
 }
@@ -234,18 +264,23 @@ function RenderRoster() {
       Button.className = 'npc' + (Slot.id === SelectedId ? ' selected' : '')
       const Avatar = document.createElement('span')
       Avatar.className = 'avatar'
-      Avatar.textContent = Slot.name.slice(0, 1)
+      if (Portraits.has(Slot.identity)) {
+        const Image = document.createElement('img')
+        Image.src = Portraits.get(Slot.identity)
+        Image.alt = ''
+        Avatar.append(Image)
+      } else Avatar.append(Icon('person'))
       const Info = document.createElement('span')
       const Name = document.createElement('strong')
       Name.textContent = Slot.name
       const Detail = document.createElement('small')
       Detail.textContent = [
-        Slot.female ? 'Женский' : 'Мужской',
-        Slot.dead ? 'Погиб' : Slot.parked ? 'Скрыт' : 'В мире',
+        Slot.female ? T('Женский') : T('Мужской'),
+        Slot.dead ? T('Погиб') : Slot.parked ? T('Скрыт') : T('В мире'),
       ].join(' · ')
       const Number = document.createElement('span')
       Number.className = 'slot-number'
-      Number.textContent = 'Слот ' + Slot.number
+      Number.textContent = T('Слот ') + Slot.number
       Info.append(Name, Detail)
       Button.append(Avatar, Info, Number)
       Button.onclick = () => SelectActor(Slot.id)
@@ -255,14 +290,21 @@ function RenderRoster() {
   Elements.empty.hidden = !!Visible.length
   const Actor = CurrentActor()
   Elements.properties.hidden = !Actor
-  Elements.selectedName.textContent = Actor?.name || 'Выберите персонажа'
-  Elements.slotBadge.textContent = Actor ? (Actor.female ? 'Ж' : 'М') + ' · ' + Actor.number : ''
+  Elements.selectedName.textContent = Actor?.name || T('Не выбран')
+  Elements.slotBadge.textContent = Actor ? (Actor.female ? T('Ж') : T('М')) + ' · ' + Actor.number : ''
   if (!Actor) return
   if (document.activeElement !== Elements.editName) Elements.editName.value = Actor.name
-  Elements.race.textContent = Actor.race
+  Elements.race.textContent = RaceLabel({ id: Actor.raceId, name: Actor.race })
+  Options(
+    Elements.editRace,
+    (State.races || []).map((Race) => ({ value: Race.id, label: RaceLabel(Race) })),
+    Elements.editRace.dataset.actor === Actor.identity ? undefined : Actor.raceId,
+  )
+  Elements.editRace.dataset.actor = Actor.identity
+  Elements.setRace.disabled = !CanChange()
   Elements.reference.textContent = Actor.reference
-  Elements.status.textContent = Actor.dead ? 'Погиб' : Actor.parked ? 'Убран из мира' : 'В мире'
-  Elements.actorWarning.textContent = Actor.warning || ''
+  Elements.status.textContent = Actor.dead ? T('Погиб') : Actor.parked ? T('Убран из мира') : T('В мире')
+  Elements.actorWarning.textContent = T(Actor.warning || '')
   Elements.teleport.disabled = MutationBusy || Actor.parked
   Elements.summon.disabled = MutationBusy || Actor.dead
   Elements.park.disabled = MutationBusy || Actor.parked || Actor.restoring
@@ -270,14 +312,14 @@ function RenderRoster() {
   Elements.deleteNpc.disabled = MutationBusy || EquipmentBusy
   if (DeletionTarget?.identity !== Actor.identity) DeletionTarget = null
   Elements.deleteConfirmation.hidden = !DeletionTarget
-  Elements.deleteQuestion.textContent = DeletionTarget ? 'Удалить «' + DeletionTarget.name + '»?' : ''
+  Elements.deleteQuestion.textContent = DeletionTarget ? T('Удалить «') + DeletionTarget.name + '»?' : ''
   Elements.confirmDelete.disabled = MutationBusy || EquipmentBusy
   Elements.cancelDelete.disabled = MutationBusy
 }
 function RenderLibrary() {
   const Library = State.library
   Options(Elements.presetCategory, [
-    { value: '', label: 'Все категории' },
+    { value: '', label: T('Все категории') },
     ...Library.categories.map((Name) => ({ value: Name, label: Name })),
   ])
   Options(
@@ -293,9 +335,9 @@ function RenderLibrary() {
   )
   const Selected = Presets.find((Preset) => Preset.id === Elements.equipmentPreset.value)
   Elements.presetDescription.textContent = Selected
-    ? Selected.error ||
-      Selected.category + ' · ' + Selected.items.length + ' предметов. Повторное применение не накапливает копии.'
-    : 'В этой категории пока нет наборов.'
+    ? T(Selected.error) ||
+      T(Selected.category) + ' · ' + Selected.items.length + T(' предметов. Повторное применение не накапливает копии.')
+    : T('В этой категории пока нет наборов.')
   Elements.applyPreset.disabled = !CanChange() || !Selected?.available
   Elements.savePreset.disabled = !CanChange()
   Elements.presetCards.replaceChildren(
@@ -304,9 +346,11 @@ function RenderLibrary() {
       Button.className = 'preset-card' + (Preset.id === Selected?.id ? ' selected' : '')
       const Info = document.createElement('span')
       const Name = document.createElement('strong')
-      Name.textContent = Preset.name
+      Name.textContent = Preset.id.startsWith('user-') ? Preset.name : T(Preset.name)
       const Detail = document.createElement('small')
-      Detail.textContent = Preset.available ? Preset.items.length + ' предметов · ' + Preset.category : Preset.error
+      Detail.textContent = Preset.available
+        ? Preset.items.length + T(' предметов · ') + Preset.category
+        : T(Preset.error)
       Info.append(Name, Detail)
       Button.append(Icon('shield'), Info)
       Button.onclick = () => {
@@ -322,7 +366,7 @@ function RenderEquipment() {
   Elements.equipmentEmpty.hidden = !!Actor
   Elements.equipmentContent.hidden = !Actor
   Elements.equipmentAudit.textContent =
-    (Actor?.warning || 'Вещи хранятся в обычном сохранении Skyrim.') +
+    T(Actor?.warning || 'Вещи хранятся в обычном сохранении Skyrim.') +
     (Actor?.audit?.missing?.length
       ? ' · ' +
         Actor.audit.missing
@@ -342,11 +386,11 @@ function RenderEquipment() {
     Container.className = 'equipment-item'
     const Info = document.createElement('span')
     const Title = document.createElement('strong')
-    Title.textContent = Item.name + (Inventory ? ' × ' + Item.count + (Item.worn ? ' · надето' : '') : '')
+    Title.textContent = Item.name + (Inventory ? ' × ' + Item.count + (Item.worn ? T(' · надето') : '') : '')
     const Source = document.createElement('small')
     Source.textContent = Item.plugin + ' | ' + Item.form.toString(16).toUpperCase().padStart(6, '0')
     const Button = document.createElement('button')
-    Button.textContent = Inventory && Item.worn ? 'Снять' : Inventory ? 'Надеть' : 'Выдать'
+    Button.textContent = Inventory && Item.worn ? T('Снять') : Inventory ? T('Надеть') : T('Выдать')
     Button.disabled = !Allowed
     Button.onclick = () =>
       LoadEquipment(Inventory && Item.worn ? 'unequipItem' : 'giveItem', {
@@ -359,7 +403,7 @@ function RenderEquipment() {
   }
   Elements.equipmentInventory.replaceChildren(...Equipment.inventory.map((Item) => Row(Item, true)))
   Elements.equipmentCatalog.replaceChildren(...Equipment.catalog.map((Item) => Row(Item, false)))
-  Elements.equipmentMatches.textContent = 'Найдено: ' + Equipment.matches + ' · показаны первые 100'
+  Elements.equipmentMatches.textContent = T('Найдено: ') + Equipment.matches + T(' · показаны первые 100')
 }
 function SelectActor(Id) {
   SelectedId = Id === '' ? null : Number(Id)
@@ -380,7 +424,8 @@ async function Act(Action, Payload = {}) {
   Render()
   try {
     await Send(Action, Payload)
-    Message('Изменения применены. Сохраните игру.')
+    if (Action === 'setRace') InvalidatePortrait(CurrentActor()?.identity)
+    Message(T('Изменения применены. Сохраните игру.'))
   } catch (Failure) {
     Message(Failure.message, true)
   } finally {
@@ -400,9 +445,12 @@ async function LoadEquipment(Action = 'equipment', Payload = {}) {
       kind: Elements.equipmentKind.value,
       ...Payload,
     })
+    if (Action !== 'equipment') InvalidatePortrait(CurrentActor()?.identity)
     if (Action !== 'equipment')
       Message(
-        Action === 'saveEquipmentPreset' ? 'Набор сохранён в библиотеке.' : 'Снаряжение обновлено. Сохраните игру.',
+        Action === 'saveEquipmentPreset'
+          ? T('Набор сохранён в библиотеке.')
+          : T('Снаряжение обновлено. Сохраните игру.'),
       )
   } catch (Failure) {
     Message(Failure.message, true)
@@ -414,7 +462,9 @@ async function LoadEquipment(Action = 'equipment', Payload = {}) {
 }
 function ReadSettings() {
   return {
-    key: Number(Elements.hotkeyKey.value || 0x42),
+    key: Number(Elements.hotkeyKey.value || 9),
+    language: Elements.language.value || State.settings.language,
+    theme: Elements.theme.value || State.settings.theme,
     modifiers:
       (Elements.modifierShift.checked ? 1 : 0) |
       (Elements.modifierCtrl.checked ? 2 : 0) |
@@ -426,7 +476,7 @@ let Popup = null
 function RefreshCombo(Select) {
   const Button = Select.parentElement.querySelector('.combo-button')
   if (!Button) return
-  Button.querySelector('.combo-label').textContent = Select.selectedOptions[0]?.textContent || 'Нет вариантов'
+  Button.querySelector('.combo-label').textContent = Select.selectedOptions[0]?.textContent || T('Нет вариантов')
   Button.disabled = Select.disabled
 }
 function CloseCombo() {
@@ -468,8 +518,8 @@ function EnhanceSelect(Select) {
     const Panel = document.createElement('div')
     Panel.className = 'combo-popup'
     const Search = document.createElement('input')
-    Search.placeholder = 'Поиск…'
-    Search.setAttribute('aria-label', 'Поиск вариантов')
+    Search.placeholder = T('Поиск…')
+    Search.setAttribute('aria-label', T('Поиск вариантов'))
     const List = document.createElement('div')
     List.className = 'combo-options'
     List.setAttribute('role', 'listbox')
@@ -501,7 +551,7 @@ function EnhanceSelect(Select) {
       if (!List.children.length) {
         const Empty = document.createElement('span')
         Empty.className = 'combo-no-results'
-        Empty.textContent = 'Нет совпадений'
+        Empty.textContent = T('Нет совпадений')
         List.append(Empty)
       }
     }
@@ -545,7 +595,10 @@ document.querySelectorAll('select').forEach(EnhanceSelect)
 document.addEventListener('pointerdown', (Event) => {
   if (Popup && !Popup.panel.contains(Event.target) && !Popup.button.contains(Event.target)) CloseCombo()
 })
-Elements.close.onclick = () => window.magelight?.send('studioCommand', { action: 'close' })
+Elements.close.onclick = () => {
+  UIVisible = false
+  window.magelight?.send('studioCommand', { action: 'close' })
+}
 document.querySelectorAll('[data-tab]').forEach((Button) => {
   Button.onclick = () => Tab(Button.dataset.tab)
 })
@@ -553,7 +606,7 @@ Elements.actorPicker.onchange = () => SelectActor(Elements.actorPicker.value)
 Elements.search.oninput = Render
 Elements.sex.onchange = () => {
   Elements.slotSelect.value = ''
-  Elements.nameSource.textContent = 'Случайное имя учитывает пол и расу создаваемого персонажа.'
+  Elements.nameSource.textContent = T('Случайное имя учитывает пол и расу создаваемого персонажа.')
   Render()
 }
 Elements.slotSelect.onchange = Render
@@ -577,24 +630,28 @@ Elements.equipmentSearchForm.onsubmit = (Event) => {
 Elements.applyPreset.onclick = () => LoadEquipment('applyEquipmentPreset', { preset: Elements.equipmentPreset.value })
 Elements.savePreset.onclick = () => {
   const Name = Elements.presetName.value.trim()
-  if (!Name) return Message('Введите название набора', true)
+  if (!Name) return Message(T('Введите название набора'), true)
   LoadEquipment('saveEquipmentPreset', { name: Name, category: Elements.saveCategory.value })
 }
 Elements.addCategory.onclick = () => {
   const Name = Elements.categoryName.value.trim()
-  if (!Name) return Message('Введите название категории', true)
+  if (!Name) return Message(T('Введите название категории'), true)
   Act('addCategory', { name: Name })
 }
+Elements.setRace.onclick = () => Act('setRace', { id: SelectedId, race: Elements.editRace.value })
 Elements.rename.onclick = () => Act('rename', { id: SelectedId, name: Elements.editName.value.trim() })
 for (const Name of ['summon', 'park', 'teleport']) Elements[Name].onclick = () => Act(Name, { id: SelectedId })
 async function RandomName(Existing) {
   try {
-    const Result = await Send('randomName', Existing ? { id: SelectedId } : { female: Elements.sex.value === 'female' })
+    const Result = await Send(
+      'randomName',
+      Existing ? { id: SelectedId } : { female: Elements.sex.value === 'female', race: Elements.creationRace.value },
+    )
     Elements[Existing ? 'editName' : 'newName'].value = Result.generatedName.name
     Elements.nameSource.textContent = Result.generatedName.source.includes('Tamrielic')
-      ? 'Имя предложено из установленного Tamrielic Names.'
+      ? T('Имя предложено из установленного Tamrielic Names.')
       : Result.generatedName.source
-    Message('Предложено имя: ' + Result.generatedName.name + '. Можно выбрать другое.')
+    Message(T('Предложено имя: ') + Result.generatedName.name + T('. Можно выбрать другое.'))
   } catch (Failure) {
     Message(Failure.message, true)
   }
@@ -616,11 +673,12 @@ Elements.createForm.onsubmit = async (Event) => {
       female: Elements.sex.value === 'female',
       slot: Elements.slotSelect.value === '' ? null : Number(Elements.slotSelect.value),
       preset: Elements.creationPreset.value,
+      race: Elements.creationRace.value,
     })
     SelectedId = State.slots.find((Slot) => !Previous.has(Slot.identity))?.id ?? SelectedId
     Elements.newName.value = ''
     CurrentTab = 'roster'
-    Message('NPC создан. Дождитесь проверки снаряжения и сохраните игру.')
+    Message(T('NPC создан. Дождитесь проверки снаряжения и сохраните игру.'))
   } catch (Failure) {
     Message(Failure.message, true)
   } finally {
@@ -649,7 +707,7 @@ Elements.confirmDelete.onclick = async () => {
     EquipmentOwnerId = null
     DeletionTarget = null
     SelectedId = null
-    Message('NPC удалён. История использования слота сохранена; сохраните игру.')
+    Message(T('NPC удалён. История использования слота сохранена; сохраните игру.'))
   } catch (Failure) {
     Message(Failure.message, true)
   } finally {
@@ -657,14 +715,14 @@ Elements.confirmDelete.onclick = async () => {
     Render()
   }
 }
-for (const Name of ['hotkeyKey', 'modifierShift', 'modifierCtrl', 'modifierAlt'])
+for (const Name of ['hotkeyKey', 'modifierShift', 'modifierCtrl', 'modifierAlt', 'language', 'theme'])
   Elements[Name].addEventListener('change', () => {
     SettingsDirty = true
     Elements.hotkeyPreview.textContent = Chord(ReadSettings())
   })
 Elements.resetSettings.onclick = () => {
   SettingsDirty = true
-  Elements.hotkeyKey.value = '66'
+  Elements.hotkeyKey.value = '9'
   Elements.modifierShift.checked = true
   Elements.modifierCtrl.checked = false
   Elements.modifierAlt.checked = false
@@ -676,16 +734,188 @@ Elements.saveSettings.onclick = async () => {
     await Send('saveSettings', { settings: ReadSettings() })
     SettingsDirty = false
     Render()
-    Message('Клавиши сохранены: ' + Chord(State.settings))
+    Message(T('Клавиши сохранены: ') + Chord(State.settings))
   } catch (Failure) {
     Message(Failure.message, true)
   }
 }
 window.magelight?.on('__uimode', (Value) => {
-  if (String(Value) === '1') Send('state').catch((Failure) => Message(Failure.message, true))
+  UIVisible = String(Value) === '1'
+  if (!UIVisible) {
+    clearTimeout(PortraitTimer)
+    PortraitTimer = null
+    clearTimeout(CameraTimer)
+    CameraTimer = null
+  }
+  if (String(Value) === '1') {
+    PreviewAttempt = ''
+    PreviewFrame = null
+    Portraits.clear()
+    PortraitAttempts.clear()
+    PickTip()
+    Send('state').catch((Failure) => Message(Failure.message, true))
+  }
 })
 setInterval(() => {
-  if (State?.slots.some((Slot) => Slot.restoring) && !Pending.size)
+  if (UIVisible && State?.slots.some((Slot) => Slot.restoring) && !Pending.size)
     Send('state').catch((Failure) => Message(Failure.message, true))
 }, 1500)
+PickTip()
+
+function InvalidatePortrait(Identity) {
+  if (!Identity) return
+  Portraits.delete(Identity)
+  PortraitAttempts.delete(Identity)
+  if (PreviewFrame?.identity === Identity) {
+    PreviewFrame = null
+    PreviewAttempt = ''
+  }
+}
+const Portraits = new Map()
+const PortraitAttempts = new Set()
+let PortraitTimer = null
+let PortraitBusy = false
+function SchedulePortrait() {
+  if (
+    !UIVisible ||
+    PortraitTimer ||
+    PortraitBusy ||
+    PreviewBusy ||
+    CurrentTab !== 'roster' ||
+    Pending.size ||
+    MutationBusy
+  )
+    return
+  const Query = Elements.search.value.trim().toLocaleLowerCase()
+  const Actor = State?.slots
+    .filter((Slot) => Slot.name.toLocaleLowerCase().includes(Query))
+    .slice(0, 24)
+    .find(
+      (Slot) =>
+        !Slot.parked &&
+        !Slot.restoring &&
+        !Slot.dead &&
+        !Portraits.has(Slot.identity) &&
+        !PortraitAttempts.has(Slot.identity),
+    )
+  if (!Actor) return
+  PortraitTimer = setTimeout(async () => {
+    PortraitTimer = null
+    if (!UIVisible || CurrentTab !== 'roster' || PreviewBusy || MutationBusy || Pending.size) return
+    PortraitAttempts.add(Actor.identity)
+    PortraitBusy = true
+    try {
+      await Send('portrait', { id: Actor.id, identity: Actor.identity }, true)
+    } catch {
+    } finally {
+      PortraitBusy = false
+      SchedulePortrait()
+    }
+  }, 450)
+}
+let PreviewFrame = null
+let PreviewBusy = false
+let PreviewAttempt = ''
+let PreviewError = ''
+let PreviewAgain = false
+function RenderPreview() {
+  const Actor = CurrentActor()
+  const Valid = Actor && !Actor.restoring && PreviewFrame?.identity === Actor.identity
+  Elements.previewImage.hidden = !Valid
+  Elements.previewEmpty.hidden = !!Valid
+  if (Valid && Elements.previewImage.getAttribute('src') !== PreviewFrame.image)
+    Elements.previewImage.src = PreviewFrame.image
+  Elements.previewStatus.textContent = PreviewBusy
+    ? T('Загрузка модели…')
+    : PreviewError ||
+      (Valid
+        ? T('Снимок модели · частей: ') +
+          PreviewFrame.meshes +
+          (PreviewFrame.skipped ? T(' · пропущено: ') + PreviewFrame.skipped : '')
+        : T('Для превью нужна загруженная модель NPC.'))
+  Elements.previewRefresh.disabled = !Actor || Actor.parked || Actor.dead || Actor.restoring || PreviewBusy
+  if (
+    UIVisible &&
+    CurrentTab === 'roster' &&
+    Actor &&
+    !Actor.parked &&
+    !Actor.restoring &&
+    !PreviewBusy &&
+    PreviewAttempt !== Actor.identity
+  ) {
+    PreviewAttempt = Actor.identity
+    setTimeout(() => RequestPreview(true), 0)
+  }
+}
+async function RequestPreview(Capture = false) {
+  const Actor = CurrentActor()
+  if (!UIVisible || !Actor || Actor.parked || Actor.restoring || CurrentTab !== 'roster') return
+  PortraitAttempts.delete(Actor.identity)
+  if (PreviewBusy) {
+    PreviewAgain = true
+    return
+  }
+  if (Capture) Portraits.delete(Actor.identity)
+  PreviewAttempt = Actor.identity
+  PreviewBusy = true
+  PreviewError = ''
+  RenderPreview()
+  try {
+    await Send('preview', {
+      id: Actor.id,
+      capture: Capture,
+      yaw: Number(Elements.previewYaw.value),
+      zoom: Number(Elements.previewZoom.value),
+      light: Number(Elements.previewLight.value),
+    })
+  } catch (Failure) {
+    PreviewError = T(Failure.message)
+  } finally {
+    PreviewBusy = false
+    RenderPreview()
+    SchedulePortrait()
+    if (PreviewAgain) {
+      PreviewAgain = false
+      RequestPreview(false)
+    }
+  }
+}
+Elements.previewRefresh.onclick = () => RequestPreview(true)
+let CameraTimer
+for (const Name of ['previewYaw', 'previewZoom'])
+  Elements[Name].addEventListener('input', () => {
+    if (!CameraTimer)
+      CameraTimer = setTimeout(() => {
+        CameraTimer = null
+        RequestPreview()
+      }, 180)
+  })
+Elements.previewLight.addEventListener('change', () => RequestPreview())
+let Drag = null
+Elements.previewViewport.onpointerdown = (Event) => {
+  if (Event.button !== 0 || !CurrentActor()) return
+  Drag = { x: Event.clientX, yaw: Number(Elements.previewYaw.value) }
+  Elements.previewViewport.setPointerCapture(Event.pointerId)
+}
+Elements.previewViewport.onpointermove = (Event) => {
+  if (!Drag) return
+  Elements.previewYaw.value = String(((Drag.yaw + (Event.clientX - Drag.x) * 0.6 + 540) % 360) - 180)
+  if (!CameraTimer)
+    CameraTimer = setTimeout(() => {
+      CameraTimer = null
+      RequestPreview()
+    }, 120)
+}
+Elements.previewViewport.onpointerup = () => {
+  if (Drag) {
+    Drag = null
+    clearTimeout(CameraTimer)
+    CameraTimer = null
+    RequestPreview()
+  }
+}
+Elements.previewViewport.onpointercancel = () => {
+  Drag = null
+}
+
 Send('state').catch((Failure) => Message(Failure.message, true))
