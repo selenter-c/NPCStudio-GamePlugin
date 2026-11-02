@@ -1,0 +1,1126 @@
+{
+  "schemaVersion": 1,
+  "plugin": "NPCStudio.esp",
+  "slots": [
+    {
+      "id": 0,
+      "female": true,
+      "base": 2560,
+      "reference": 2816,
+      "color": 2304
+    },
+    {
+      "id": 1,
+      "female": true,
+      "base": 2561,
+      "reference": 2817,
+      "color": 2305
+    },
+    {
+      "id": 2,
+      "female": true,
+      "base": 2562,
+      "reference": 2818,
+      "color": 2306
+    },
+    {
+      "id": 3,
+      "female": true,
+      "base": 2563,
+      "reference": 2819,
+      "color": 2307
+    },
+    {
+      "id": 4,
+      "female": true,
+      "base": 2564,
+      "reference": 2820,
+      "color": 2308
+    },
+    {
+      "id": 5,
+      "female": true,
+      "base": 2565,
+      "reference": 2821,
+      "color": 2309
+    },
+    {
+      "id": 6,
+      "female": true,
+      "base": 2566,
+      "reference": 2822,
+      "color": 2310
+    },
+    {
+      "id": 7,
+      "female": true,
+      "base": 2567,
+      "reference": 2823,
+      "color": 2311
+    },
+    {
+      "id": 8,
+      "female": true,
+      "base": 2568,
+      "reference": 2824,
+      "color": 2312
+    },
+    {
+      "id": 9,
+      "female": true,
+      "base": 2569,
+      "reference": 2825,
+      "color": 2313
+    },
+    {
+      "id": 10,
+      "female": true,
+      "base": 2570,
+      "reference": 2826,
+      "color": 2314
+    },
+    {
+      "id": 11,
+      "female": true,
+      "base": 2571,
+      "reference": 2827,
+      "color": 2315
+    },
+    {
+      "id": 12,
+      "female": true,
+      "base": 2572,
+      "reference": 2828,
+      "color": 2316
+    },
+    {
+      "id": 13,
+      "female": true,
+      "base": 2573,
+      "reference": 2829,
+      "color": 2317
+    },
+    {
+      "id": 14,
+      "female": true,
+      "base": 2574,
+      "reference": 2830,
+      "color": 2318
+    },
+    {
+      "id": 15,
+      "female": true,
+      "base": 2575,
+      "reference": 2831,
+      "color": 2319
+    },
+    {
+      "id": 16,
+      "female": true,
+      "base": 2576,
+      "reference": 2832,
+      "color": 2320
+    },
+    {
+      "id": 17,
+      "female": true,
+      "base": 2577,
+      "reference": 2833,
+      "color": 2321
+    },
+    {
+      "id": 18,
+      "female": true,
+      "base": 2578,
+      "reference": 2834,
+      "color": 2322
+    },
+    {
+      "id": 19,
+      "female": true,
+      "base": 2579,
+      "reference": 2835,
+      "color": 2323
+    },
+    {
+      "id": 20,
+      "female": true,
+      "base": 2580,
+      "reference": 2836,
+      "color": 2324
+    },
+    {
+      "id": 21,
+      "female": true,
+      "base": 2581,
+      "reference": 2837,
+      "color": 2325
+    },
+    {
+      "id": 22,
+      "female": true,
+      "base": 2582,
+      "reference": 2838,
+      "color": 2326
+    },
+    {
+      "id": 23,
+      "female": true,
+      "base": 2583,
+      "reference": 2839,
+      "color": 2327
+    },
+    {
+      "id": 24,
+      "female": true,
+      "base": 2584,
+      "reference": 2840,
+      "color": 2328
+    },
+    {
+      "id": 25,
+      "female": true,
+      "base": 2585,
+      "reference": 2841,
+      "color": 2329
+    },
+    {
+      "id": 26,
+      "female": true,
+      "base": 2586,
+      "reference": 2842,
+      "color": 2330
+    },
+    {
+      "id": 27,
+      "female": true,
+      "base": 2587,
+      "reference": 2843,
+      "color": 2331
+    },
+    {
+      "id": 28,
+      "female": true,
+      "base": 2588,
+      "reference": 2844,
+      "color": 2332
+    },
+    {
+      "id": 29,
+      "female": true,
+      "base": 2589,
+      "reference": 2845,
+      "color": 2333
+    },
+    {
+      "id": 30,
+      "female": true,
+      "base": 2590,
+      "reference": 2846,
+      "color": 2334
+    },
+    {
+      "id": 31,
+      "female": true,
+      "base": 2591,
+      "reference": 2847,
+      "color": 2335
+    },
+    {
+      "id": 32,
+      "female": true,
+      "base": 2592,
+      "reference": 2848,
+      "color": 2336
+    },
+    {
+      "id": 33,
+      "female": true,
+      "base": 2593,
+      "reference": 2849,
+      "color": 2337
+    },
+    {
+      "id": 34,
+      "female": true,
+      "base": 2594,
+      "reference": 2850,
+      "color": 2338
+    },
+    {
+      "id": 35,
+      "female": true,
+      "base": 2595,
+      "reference": 2851,
+      "color": 2339
+    },
+    {
+      "id": 36,
+      "female": true,
+      "base": 2596,
+      "reference": 2852,
+      "color": 2340
+    },
+    {
+      "id": 37,
+      "female": true,
+      "base": 2597,
+      "reference": 2853,
+      "color": 2341
+    },
+    {
+      "id": 38,
+      "female": true,
+      "base": 2598,
+      "reference": 2854,
+      "color": 2342
+    },
+    {
+      "id": 39,
+      "female": true,
+      "base": 2599,
+      "reference": 2855,
+      "color": 2343
+    },
+    {
+      "id": 40,
+      "female": true,
+      "base": 2600,
+      "reference": 2856,
+      "color": 2344
+    },
+    {
+      "id": 41,
+      "female": true,
+      "base": 2601,
+      "reference": 2857,
+      "color": 2345
+    },
+    {
+      "id": 42,
+      "female": true,
+      "base": 2602,
+      "reference": 2858,
+      "color": 2346
+    },
+    {
+      "id": 43,
+      "female": true,
+      "base": 2603,
+      "reference": 2859,
+      "color": 2347
+    },
+    {
+      "id": 44,
+      "female": true,
+      "base": 2604,
+      "reference": 2860,
+      "color": 2348
+    },
+    {
+      "id": 45,
+      "female": true,
+      "base": 2605,
+      "reference": 2861,
+      "color": 2349
+    },
+    {
+      "id": 46,
+      "female": true,
+      "base": 2606,
+      "reference": 2862,
+      "color": 2350
+    },
+    {
+      "id": 47,
+      "female": true,
+      "base": 2607,
+      "reference": 2863,
+      "color": 2351
+    },
+    {
+      "id": 48,
+      "female": true,
+      "base": 2608,
+      "reference": 2864,
+      "color": 2352
+    },
+    {
+      "id": 49,
+      "female": true,
+      "base": 2609,
+      "reference": 2865,
+      "color": 2353
+    },
+    {
+      "id": 50,
+      "female": true,
+      "base": 2610,
+      "reference": 2866,
+      "color": 2354
+    },
+    {
+      "id": 51,
+      "female": true,
+      "base": 2611,
+      "reference": 2867,
+      "color": 2355
+    },
+    {
+      "id": 52,
+      "female": true,
+      "base": 2612,
+      "reference": 2868,
+      "color": 2356
+    },
+    {
+      "id": 53,
+      "female": true,
+      "base": 2613,
+      "reference": 2869,
+      "color": 2357
+    },
+    {
+      "id": 54,
+      "female": true,
+      "base": 2614,
+      "reference": 2870,
+      "color": 2358
+    },
+    {
+      "id": 55,
+      "female": true,
+      "base": 2615,
+      "reference": 2871,
+      "color": 2359
+    },
+    {
+      "id": 56,
+      "female": true,
+      "base": 2616,
+      "reference": 2872,
+      "color": 2360
+    },
+    {
+      "id": 57,
+      "female": true,
+      "base": 2617,
+      "reference": 2873,
+      "color": 2361
+    },
+    {
+      "id": 58,
+      "female": true,
+      "base": 2618,
+      "reference": 2874,
+      "color": 2362
+    },
+    {
+      "id": 59,
+      "female": true,
+      "base": 2619,
+      "reference": 2875,
+      "color": 2363
+    },
+    {
+      "id": 60,
+      "female": true,
+      "base": 2620,
+      "reference": 2876,
+      "color": 2364
+    },
+    {
+      "id": 61,
+      "female": true,
+      "base": 2621,
+      "reference": 2877,
+      "color": 2365
+    },
+    {
+      "id": 62,
+      "female": true,
+      "base": 2622,
+      "reference": 2878,
+      "color": 2366
+    },
+    {
+      "id": 63,
+      "female": true,
+      "base": 2623,
+      "reference": 2879,
+      "color": 2367
+    },
+    {
+      "id": 64,
+      "female": true,
+      "base": 2624,
+      "reference": 2880,
+      "color": 2368
+    },
+    {
+      "id": 65,
+      "female": true,
+      "base": 2625,
+      "reference": 2881,
+      "color": 2369
+    },
+    {
+      "id": 66,
+      "female": true,
+      "base": 2626,
+      "reference": 2882,
+      "color": 2370
+    },
+    {
+      "id": 67,
+      "female": true,
+      "base": 2627,
+      "reference": 2883,
+      "color": 2371
+    },
+    {
+      "id": 68,
+      "female": true,
+      "base": 2628,
+      "reference": 2884,
+      "color": 2372
+    },
+    {
+      "id": 69,
+      "female": true,
+      "base": 2629,
+      "reference": 2885,
+      "color": 2373
+    },
+    {
+      "id": 70,
+      "female": true,
+      "base": 2630,
+      "reference": 2886,
+      "color": 2374
+    },
+    {
+      "id": 71,
+      "female": true,
+      "base": 2631,
+      "reference": 2887,
+      "color": 2375
+    },
+    {
+      "id": 72,
+      "female": true,
+      "base": 2632,
+      "reference": 2888,
+      "color": 2376
+    },
+    {
+      "id": 73,
+      "female": true,
+      "base": 2633,
+      "reference": 2889,
+      "color": 2377
+    },
+    {
+      "id": 74,
+      "female": true,
+      "base": 2634,
+      "reference": 2890,
+      "color": 2378
+    },
+    {
+      "id": 75,
+      "female": true,
+      "base": 2635,
+      "reference": 2891,
+      "color": 2379
+    },
+    {
+      "id": 76,
+      "female": true,
+      "base": 2636,
+      "reference": 2892,
+      "color": 2380
+    },
+    {
+      "id": 77,
+      "female": true,
+      "base": 2637,
+      "reference": 2893,
+      "color": 2381
+    },
+    {
+      "id": 78,
+      "female": true,
+      "base": 2638,
+      "reference": 2894,
+      "color": 2382
+    },
+    {
+      "id": 79,
+      "female": true,
+      "base": 2639,
+      "reference": 2895,
+      "color": 2383
+    },
+    {
+      "id": 80,
+      "female": false,
+      "base": 2640,
+      "reference": 2896,
+      "color": 2384
+    },
+    {
+      "id": 81,
+      "female": false,
+      "base": 2641,
+      "reference": 2897,
+      "color": 2385
+    },
+    {
+      "id": 82,
+      "female": false,
+      "base": 2642,
+      "reference": 2898,
+      "color": 2386
+    },
+    {
+      "id": 83,
+      "female": false,
+      "base": 2643,
+      "reference": 2899,
+      "color": 2387
+    },
+    {
+      "id": 84,
+      "female": false,
+      "base": 2644,
+      "reference": 2900,
+      "color": 2388
+    },
+    {
+      "id": 85,
+      "female": false,
+      "base": 2645,
+      "reference": 2901,
+      "color": 2389
+    },
+    {
+      "id": 86,
+      "female": false,
+      "base": 2646,
+      "reference": 2902,
+      "color": 2390
+    },
+    {
+      "id": 87,
+      "female": false,
+      "base": 2647,
+      "reference": 2903,
+      "color": 2391
+    },
+    {
+      "id": 88,
+      "female": false,
+      "base": 2648,
+      "reference": 2904,
+      "color": 2392
+    },
+    {
+      "id": 89,
+      "female": false,
+      "base": 2649,
+      "reference": 2905,
+      "color": 2393
+    },
+    {
+      "id": 90,
+      "female": false,
+      "base": 2650,
+      "reference": 2906,
+      "color": 2394
+    },
+    {
+      "id": 91,
+      "female": false,
+      "base": 2651,
+      "reference": 2907,
+      "color": 2395
+    },
+    {
+      "id": 92,
+      "female": false,
+      "base": 2652,
+      "reference": 2908,
+      "color": 2396
+    },
+    {
+      "id": 93,
+      "female": false,
+      "base": 2653,
+      "reference": 2909,
+      "color": 2397
+    },
+    {
+      "id": 94,
+      "female": false,
+      "base": 2654,
+      "reference": 2910,
+      "color": 2398
+    },
+    {
+      "id": 95,
+      "female": false,
+      "base": 2655,
+      "reference": 2911,
+      "color": 2399
+    },
+    {
+      "id": 96,
+      "female": false,
+      "base": 2656,
+      "reference": 2912,
+      "color": 2400
+    },
+    {
+      "id": 97,
+      "female": false,
+      "base": 2657,
+      "reference": 2913,
+      "color": 2401
+    },
+    {
+      "id": 98,
+      "female": false,
+      "base": 2658,
+      "reference": 2914,
+      "color": 2402
+    },
+    {
+      "id": 99,
+      "female": false,
+      "base": 2659,
+      "reference": 2915,
+      "color": 2403
+    },
+    {
+      "id": 100,
+      "female": false,
+      "base": 2660,
+      "reference": 2916,
+      "color": 2404
+    },
+    {
+      "id": 101,
+      "female": false,
+      "base": 2661,
+      "reference": 2917,
+      "color": 2405
+    },
+    {
+      "id": 102,
+      "female": false,
+      "base": 2662,
+      "reference": 2918,
+      "color": 2406
+    },
+    {
+      "id": 103,
+      "female": false,
+      "base": 2663,
+      "reference": 2919,
+      "color": 2407
+    },
+    {
+      "id": 104,
+      "female": false,
+      "base": 2664,
+      "reference": 2920,
+      "color": 2408
+    },
+    {
+      "id": 105,
+      "female": false,
+      "base": 2665,
+      "reference": 2921,
+      "color": 2409
+    },
+    {
+      "id": 106,
+      "female": false,
+      "base": 2666,
+      "reference": 2922,
+      "color": 2410
+    },
+    {
+      "id": 107,
+      "female": false,
+      "base": 2667,
+      "reference": 2923,
+      "color": 2411
+    },
+    {
+      "id": 108,
+      "female": false,
+      "base": 2668,
+      "reference": 2924,
+      "color": 2412
+    },
+    {
+      "id": 109,
+      "female": false,
+      "base": 2669,
+      "reference": 2925,
+      "color": 2413
+    },
+    {
+      "id": 110,
+      "female": false,
+      "base": 2670,
+      "reference": 2926,
+      "color": 2414
+    },
+    {
+      "id": 111,
+      "female": false,
+      "base": 2671,
+      "reference": 2927,
+      "color": 2415
+    },
+    {
+      "id": 112,
+      "female": false,
+      "base": 2672,
+      "reference": 2928,
+      "color": 2416
+    },
+    {
+      "id": 113,
+      "female": false,
+      "base": 2673,
+      "reference": 2929,
+      "color": 2417
+    },
+    {
+      "id": 114,
+      "female": false,
+      "base": 2674,
+      "reference": 2930,
+      "color": 2418
+    },
+    {
+      "id": 115,
+      "female": false,
+      "base": 2675,
+      "reference": 2931,
+      "color": 2419
+    },
+    {
+      "id": 116,
+      "female": false,
+      "base": 2676,
+      "reference": 2932,
+      "color": 2420
+    },
+    {
+      "id": 117,
+      "female": false,
+      "base": 2677,
+      "reference": 2933,
+      "color": 2421
+    },
+    {
+      "id": 118,
+      "female": false,
+      "base": 2678,
+      "reference": 2934,
+      "color": 2422
+    },
+    {
+      "id": 119,
+      "female": false,
+      "base": 2679,
+      "reference": 2935,
+      "color": 2423
+    },
+    {
+      "id": 120,
+      "female": false,
+      "base": 2680,
+      "reference": 2936,
+      "color": 2424
+    },
+    {
+      "id": 121,
+      "female": false,
+      "base": 2681,
+      "reference": 2937,
+      "color": 2425
+    },
+    {
+      "id": 122,
+      "female": false,
+      "base": 2682,
+      "reference": 2938,
+      "color": 2426
+    },
+    {
+      "id": 123,
+      "female": false,
+      "base": 2683,
+      "reference": 2939,
+      "color": 2427
+    },
+    {
+      "id": 124,
+      "female": false,
+      "base": 2684,
+      "reference": 2940,
+      "color": 2428
+    },
+    {
+      "id": 125,
+      "female": false,
+      "base": 2685,
+      "reference": 2941,
+      "color": 2429
+    },
+    {
+      "id": 126,
+      "female": false,
+      "base": 2686,
+      "reference": 2942,
+      "color": 2430
+    },
+    {
+      "id": 127,
+      "female": false,
+      "base": 2687,
+      "reference": 2943,
+      "color": 2431
+    },
+    {
+      "id": 128,
+      "female": false,
+      "base": 2688,
+      "reference": 2944,
+      "color": 2432
+    },
+    {
+      "id": 129,
+      "female": false,
+      "base": 2689,
+      "reference": 2945,
+      "color": 2433
+    },
+    {
+      "id": 130,
+      "female": false,
+      "base": 2690,
+      "reference": 2946,
+      "color": 2434
+    },
+    {
+      "id": 131,
+      "female": false,
+      "base": 2691,
+      "reference": 2947,
+      "color": 2435
+    },
+    {
+      "id": 132,
+      "female": false,
+      "base": 2692,
+      "reference": 2948,
+      "color": 2436
+    },
+    {
+      "id": 133,
+      "female": false,
+      "base": 2693,
+      "reference": 2949,
+      "color": 2437
+    },
+    {
+      "id": 134,
+      "female": false,
+      "base": 2694,
+      "reference": 2950,
+      "color": 2438
+    },
+    {
+      "id": 135,
+      "female": false,
+      "base": 2695,
+      "reference": 2951,
+      "color": 2439
+    },
+    {
+      "id": 136,
+      "female": false,
+      "base": 2696,
+      "reference": 2952,
+      "color": 2440
+    },
+    {
+      "id": 137,
+      "female": false,
+      "base": 2697,
+      "reference": 2953,
+      "color": 2441
+    },
+    {
+      "id": 138,
+      "female": false,
+      "base": 2698,
+      "reference": 2954,
+      "color": 2442
+    },
+    {
+      "id": 139,
+      "female": false,
+      "base": 2699,
+      "reference": 2955,
+      "color": 2443
+    },
+    {
+      "id": 140,
+      "female": false,
+      "base": 2700,
+      "reference": 2956,
+      "color": 2444
+    },
+    {
+      "id": 141,
+      "female": false,
+      "base": 2701,
+      "reference": 2957,
+      "color": 2445
+    },
+    {
+      "id": 142,
+      "female": false,
+      "base": 2702,
+      "reference": 2958,
+      "color": 2446
+    },
+    {
+      "id": 143,
+      "female": false,
+      "base": 2703,
+      "reference": 2959,
+      "color": 2447
+    },
+    {
+      "id": 144,
+      "female": false,
+      "base": 2704,
+      "reference": 2960,
+      "color": 2448
+    },
+    {
+      "id": 145,
+      "female": false,
+      "base": 2705,
+      "reference": 2961,
+      "color": 2449
+    },
+    {
+      "id": 146,
+      "female": false,
+      "base": 2706,
+      "reference": 2962,
+      "color": 2450
+    },
+    {
+      "id": 147,
+      "female": false,
+      "base": 2707,
+      "reference": 2963,
+      "color": 2451
+    },
+    {
+      "id": 148,
+      "female": false,
+      "base": 2708,
+      "reference": 2964,
+      "color": 2452
+    },
+    {
+      "id": 149,
+      "female": false,
+      "base": 2709,
+      "reference": 2965,
+      "color": 2453
+    },
+    {
+      "id": 150,
+      "female": false,
+      "base": 2710,
+      "reference": 2966,
+      "color": 2454
+    },
+    {
+      "id": 151,
+      "female": false,
+      "base": 2711,
+      "reference": 2967,
+      "color": 2455
+    },
+    {
+      "id": 152,
+      "female": false,
+      "base": 2712,
+      "reference": 2968,
+      "color": 2456
+    },
+    {
+      "id": 153,
+      "female": false,
+      "base": 2713,
+      "reference": 2969,
+      "color": 2457
+    },
+    {
+      "id": 154,
+      "female": false,
+      "base": 2714,
+      "reference": 2970,
+      "color": 2458
+    },
+    {
+      "id": 155,
+      "female": false,
+      "base": 2715,
+      "reference": 2971,
+      "color": 2459
+    },
+    {
+      "id": 156,
+      "female": false,
+      "base": 2716,
+      "reference": 2972,
+      "color": 2460
+    },
+    {
+      "id": 157,
+      "female": false,
+      "base": 2717,
+      "reference": 2973,
+      "color": 2461
+    },
+    {
+      "id": 158,
+      "female": false,
+      "base": 2718,
+      "reference": 2974,
+      "color": 2462
+    },
+    {
+      "id": 159,
+      "female": false,
+      "base": 2719,
+      "reference": 2975,
+      "color": 2463
+    }
+  ]
+}

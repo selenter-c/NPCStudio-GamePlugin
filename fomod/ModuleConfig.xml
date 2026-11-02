@@ -1,26 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
-    <moduleName>NPC Studio</moduleName>
-    <installSteps order="Explicit">
-        <installStep name="NPC Studio">
-            <optionalFileGroups order="Explicit">
-                <group name="Core Files" type="SelectAll">
-                    <plugins order="Explicit">
-                        <plugin name="NPC Studio">
-                            <description>NPC Studio - PrismUI Dashboard, NPC spawner, presets, SkyrimNet AI biographies.</description>
-                            <files>
-                                <file source="NPCStudio.esp" destination="NPCStudio.esp" priority="0"/>
-                                <folder source="SKSE" destination="SKSE" priority="0"/>
-                                <folder source="Scripts" destination="Scripts" priority="0"/>
-                                <folder source="PrismaUI" destination="PrismaUI" priority="0"/>
-                            </files>
-                            <typeDescriptor>
-                                <type name="Required"/>
-                            </typeDescriptor>
-                        </plugin>
-                    </plugins>
-                </group>
-            </optionalFileGroups>
-        </installStep>
-    </installSteps>
+  <moduleName>NPC Studio</moduleName>
+  <requiredInstallFiles>
+    <file source="NPCStudio.esp" destination="NPCStudio.esp"/>
+    <folder source="SKSE" destination="SKSE"/>
+    <folder source="Magelight" destination="Magelight"/>
+  </requiredInstallFiles>
 </config>
