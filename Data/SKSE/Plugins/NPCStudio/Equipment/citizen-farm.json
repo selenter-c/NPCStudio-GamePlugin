@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "Горожанин: простая одежда",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 114202,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 114203,
+      "count": 1
+    }
+  ]
+}

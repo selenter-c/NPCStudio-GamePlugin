@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "Маг: дорожная мантия",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 765171,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 765143,
+      "count": 1
+    }
+  ]
+}

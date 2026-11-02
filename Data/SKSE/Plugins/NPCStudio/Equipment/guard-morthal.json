@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "name": "Стража: Морфал",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136480,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136731,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683391,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683389,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136431,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80265,
+      "count": 1
+    }
+  ]
+}

@@ -1,6 +1,10 @@
 const Elements = Object.fromEntries(Array.from(document.querySelectorAll('[id]')).map(Element => [Element.id, Element]))
 let State = null
 let SelectedId = null
+let CurrentTab = 'characters'
+let Equipment = null
+let EquipmentOwnerId = null
+let EquipmentBusy = false
 let NextRequestId = 0
 const Pending = new Map()
 
@@ -35,6 +39,10 @@ window.studioResponse = Payload => {
     }
     if (Response.ok) {
       State = Response.state
+      if (State.equipment) {
+        Equipment = State.equipment
+        EquipmentOwnerId = State.equipmentOwnerId
+      }
       Render()
       Request?.Resolve(State)
     } else {
@@ -66,10 +74,13 @@ function Render() {
     const Details = document.createElement('span')
     Details.textContent = [Slot.female ? 'Женский' : 'Мужской', Slot.dead ? 'Погиб' : Slot.parked ? 'Убран' : 'В мире'].join(' · ')
     Button.append(Name, Details)
-    Button.onclick = () => { SelectedId = Slot.id; Render() }
+    Button.onclick = () => { SelectedId = Slot.id; Render(); if (CurrentTab === 'equipment') LoadEquipment() }
     Elements.list.append(Button)
   }
   const Selected = State.slots.find(Slot => Slot.id === SelectedId)
+  Elements.characterPanel.hidden = CurrentTab !== 'characters'
+  Elements.equipmentPanel.hidden = CurrentTab !== 'equipment'
+  RenderEquipment()
   Elements.properties.hidden = !Selected
   Elements.selectedName.textContent = Selected?.name || 'Новый персонаж'
   Elements.slotBadge.textContent = Selected ? 'СЛОТ ' + (Selected.id % 80 + 1) + (Selected.female ? ' · Ж' : ' · М') : 'СВОБОДНЫЙ СЛОТ'
@@ -104,9 +115,85 @@ Elements.createForm.onsubmit = async Event => {
     Elements.newName.value = ''
     Render()
     Message('NPC создан. Для постоянного сохранения сохраните игру.')
+    if (CurrentTab === 'equipment') LoadEquipment()
   } catch (ErrorValue) { Message(ErrorValue.message, true); Render() }
 }
 for (const Name of ['summon', 'park', 'teleport']) Elements[Name].onclick = () => Action(Name, { id: SelectedId })
 Elements.rename.onclick = () => Action('rename', { id: SelectedId, name: Elements.editName.value.trim() })
 window.magelight?.on('__uimode', Value => { if (String(Value) === '1') Action('state') })
 Send('state').catch(ErrorValue => Message(ErrorValue.message, true))
+
+function EquipmentPayload() {
+  return { id: SelectedId, query: Elements.equipmentQuery.value.trim(), kind: Elements.equipmentKind.value }
+}
+
+async function LoadEquipment(ActionName = 'equipment', Payload = {}) {
+  if (SelectedId === null || EquipmentBusy) return
+  const RequestedId = SelectedId
+  EquipmentBusy = true
+  RenderEquipment()
+  try {
+    await Send(ActionName, { ...EquipmentPayload(), ...Payload })
+    if (ActionName !== 'equipment') Message(ActionName === 'saveEquipmentPreset' ? 'Набор сохранён в файле и доступен другим NPC.' : 'Снаряжение обновлено. Сохраните игру и проверьте внешний вид NPC.')
+  } catch (ErrorValue) { Message(ErrorValue.message, true) }
+  finally {
+    EquipmentBusy = false
+    RenderEquipment()
+    if (CurrentTab === 'equipment' && RequestedId !== SelectedId && SelectedId !== null) LoadEquipment()
+  }
+}
+
+function RenderEquipment() {
+  const Selected = State?.slots.find(Slot => Slot.id === SelectedId)
+  Elements.equipmentEmpty.hidden = !!Selected
+  const Ready = Selected && Equipment && EquipmentOwnerId === SelectedId
+  Elements.equipmentContent.hidden = !Ready
+  Elements.charactersTab.classList.toggle('active', CurrentTab === 'characters')
+  Elements.equipmentTab.classList.toggle('active', CurrentTab === 'equipment')
+  if (!Ready) return
+  const CanChange = !EquipmentBusy && !Selected.parked && !Selected.dead && State.ready && State.worldLoaded
+  const PreviousPreset = Elements.equipmentPreset.value
+  Elements.equipmentPreset.replaceChildren()
+  for (const Preset of Equipment.presets) {
+    const Option = document.createElement('option')
+    Option.value = Preset.id
+    Option.textContent = Preset.name + (Preset.available ? '' : ' (нет зависимости)')
+    Elements.equipmentPreset.append(Option)
+  }
+  if (Equipment.presets.some(Preset => Preset.id === PreviousPreset)) Elements.equipmentPreset.value = PreviousPreset
+  const Preset = Equipment.presets.find(Preset => Preset.id === Elements.equipmentPreset.value)
+  Elements.presetDescription.textContent = Preset ? Preset.error || 'Предметов в наборе: ' + Preset.items.length : 'Наборов пока нет'
+  Elements.applyPreset.disabled = !CanChange || !Preset?.available
+  Elements.savePreset.disabled = !CanChange
+  Elements.equipmentRefresh.disabled = EquipmentBusy
+  Elements.equipmentMatches.textContent = 'Найдено: ' + Equipment.matches + '. Показаны первые 100; уточните поиск.'
+  function ItemRow(Item, IsInventory) {
+    const Row = document.createElement('div')
+    Row.className = 'equipment-item'
+    const Info = document.createElement('span')
+    const Title = document.createElement('strong')
+    Title.textContent = Item.name + (IsInventory ? ' × ' + Item.count + (Item.worn ? ' · надето' : '') : '')
+    const Origin = document.createElement('small')
+    Origin.textContent = Item.plugin + ' | ' + Item.form.toString(16).toUpperCase().padStart(6, '0')
+    Info.append(Title, Origin)
+    const Button = document.createElement('button')
+    Button.textContent = IsInventory && Item.worn ? 'Снять' : IsInventory ? 'Надеть' : 'Выдать и надеть'
+    Button.disabled = !CanChange
+    Button.onclick = () => LoadEquipment(IsInventory && Item.worn ? 'unequipItem' : 'giveItem', { item: { plugin: Item.plugin, form: Item.form }, count: Item.kind === 'ammo' ? 100 : 1 })
+    Row.append(Info, Button)
+    return Row
+  }
+  Elements.equipmentInventory.replaceChildren(...Equipment.inventory.map(Item => ItemRow(Item, true)))
+  Elements.equipmentCatalog.replaceChildren(...Equipment.catalog.map(Item => ItemRow(Item, false)))
+}
+Elements.charactersTab.onclick = () => { CurrentTab = 'characters'; Render() }
+Elements.equipmentTab.onclick = () => { CurrentTab = 'equipment'; Render(); LoadEquipment() }
+Elements.equipmentRefresh.onclick = () => LoadEquipment()
+Elements.equipmentPreset.onchange = RenderEquipment
+Elements.equipmentSearchForm.onsubmit = Event => { Event.preventDefault(); LoadEquipment() }
+Elements.applyPreset.onclick = () => LoadEquipment('applyEquipmentPreset', { preset: Elements.equipmentPreset.value })
+Elements.savePreset.onclick = () => {
+  const Name = Elements.presetName.value.trim()
+  if (!Name) { Message('Введите имя набора', true); return }
+  LoadEquipment('saveEquipmentPreset', { name: Name })
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "name": "Стража: Данстар",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136485,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136735,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683391,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683389,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136439,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80265,
+      "count": 1
+    }
+  ]
+}

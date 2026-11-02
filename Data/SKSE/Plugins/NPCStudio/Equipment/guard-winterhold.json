@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "name": "Стража: Винтерхолд",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136482,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136733,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683391,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683389,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136433,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80265,
+      "count": 1
+    }
+  ]
+}

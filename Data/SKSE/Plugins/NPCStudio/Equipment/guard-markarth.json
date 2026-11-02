@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "name": "Стража: Маркарт",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136456,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136723,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683391,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683389,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136412,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80265,
+      "count": 1
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "name": "Бандит: лучник",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80145,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80144,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80146,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80147,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80261,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80253,
+      "count": 100
+    }
+  ]
+}

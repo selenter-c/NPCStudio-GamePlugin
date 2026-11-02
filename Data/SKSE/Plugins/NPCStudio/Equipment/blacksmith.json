@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "Кузнец",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 374431,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 374430,
+      "count": 1
+    }
+  ]
+}

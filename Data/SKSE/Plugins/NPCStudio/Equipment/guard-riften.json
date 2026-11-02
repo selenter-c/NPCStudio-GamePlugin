@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "name": "Стража: Рифтен",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136455,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136738,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683391,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683389,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 136378,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80265,
+      "count": 1
+    }
+  ]
+}

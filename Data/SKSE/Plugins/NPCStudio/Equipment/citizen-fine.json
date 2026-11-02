@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "name": "Горожанин: богатая одежда",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 551313,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 551315,
+      "count": 1
+    }
+  ]
+}
