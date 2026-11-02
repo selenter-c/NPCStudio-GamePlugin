@@ -377,9 +377,6 @@ progress {
 .used {
   background: #d5a665;
 }
-.unknown {
-  background: hsla(var(--hue), 8.6%, 61.4%, 1);
-}
 .roster-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 330px;

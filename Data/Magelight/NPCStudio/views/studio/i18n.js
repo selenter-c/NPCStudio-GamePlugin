@@ -20,7 +20,6 @@ const English = {
   М: 'M',
   новый: 'new',
   использовался: 'previously used',
-  'история до 0.4 неизвестна': 'history before 0.4 unknown',
   'Автоматически · сначала новые': 'Automatic · unused slots first',
   'Слот ': 'Slot ',
   'Свободно: ': 'Available: ',
@@ -102,7 +101,6 @@ const English = {
   'История слотов': 'Slot history',
   'Новый — ещё не использовался': 'New — never used',
   'Повторный — прежний NPC удалён': 'Reused — previous NPC deleted',
-  'История до версии 0.4 неизвестна': 'History before version 0.4 is unknown',
   'Автоматический выбор сначала использует новые слоты. При повторном использовании ссылка в мире остаётся прежней.':
     'Automatic selection prefers unused slots. Reusing a slot keeps its world reference.',
   'Поиск персонажей…': 'Search characters…',
@@ -331,9 +329,6 @@ Object.assign(English, {
 const RussianMessages = {
   'Unsupported race': 'Эта раса пока не поддерживается',
   'Race is unavailable': 'Раса недоступна',
-  'A race change is still pending': 'Предыдущая смена расы ещё не завершилась',
-  'Papyrus VM is unavailable': 'Виртуальная машина Papyrus недоступна',
-  'Could not schedule Actor.SetRace': 'Не удалось запустить штатную смену расы',
   'NPC is not ready for a race change': 'NPC пока не готов к смене расы',
   'Unsupported language': 'Этот язык не поддерживается',
   'Unsupported theme': 'Эта палитра не поддерживается',
@@ -393,4 +388,9 @@ Object.assign(English, {
     'Dynamically created items cannot be saved in a portable outfit',
   'Файл больше 64 КБ': 'The file exceeds 64 KB',
   Предмет: 'Item',
+})
+
+Object.assign(English, {
+  'Эта тестовая сборка требует новую игру. Старые сохранения NPCStudio не поддерживаются':
+    'This test build requires a new game. Older NPCStudio saves are not supported',
 })

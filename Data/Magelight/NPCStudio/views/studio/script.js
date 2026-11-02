@@ -226,7 +226,7 @@ function RenderCreation() {
     (State.races || []).map((Race) => ({ value: Race.id, label: RaceLabel(Race) })),
   )
   const Slots = State.availableSlots.filter((Slot) => Slot.female === Female)
-  const Status = { fresh: T('новый'), used: T('использовался'), unknown: T('история до 0.4 неизвестна') }
+  const Status = { fresh: T('новый'), used: T('использовался') }
   Options(Elements.slotSelect, [
     { value: '', label: T('Автоматически · сначала новые') },
     ...Slots.map((Slot) => ({ value: Slot.id, label: T('Слот ') + Slot.number + ' · ' + Status[Slot.history] })),
