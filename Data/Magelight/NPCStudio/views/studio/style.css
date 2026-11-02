@@ -29,3 +29,7 @@ header { grid-column: 1/-1; display:flex; align-items:center; justify-content:sp
 #equipmentPanel .list { margin-bottom:24px }
 #equipmentPreset { margin-bottom:12px }
 #equipmentSearchForm { display:grid; gap:8px }
+
+.danger { border-color:#985862; color:#f1b4bd; font-size:13px }
+.delete-confirmation { border:1px solid #985862; background:#36212b; padding:16px; margin-bottom:18px; font-size:14px }
+.detail > .section-head { flex-wrap:wrap }

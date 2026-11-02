@@ -5,6 +5,8 @@ let CurrentTab = 'characters'
 let Equipment = null
 let EquipmentOwnerId = null
 let EquipmentBusy = false
+let DeletionTarget = null
+let DeleteBusy = false
 let NextRequestId = 0
 const Pending = new Map()
 
@@ -17,6 +19,9 @@ function Send(Action, Payload = {}) {
   if (!window.magelight) {
     Message('Для работы нужен запущенный Skyrim с Magelight UI', true)
     return Promise.reject(new Error('Нет подключения к игре'))
+  }
+  if (Payload.id !== undefined && Payload.identity === undefined) {
+    Payload = { ...Payload, identity: State?.slots.find(Slot => Slot.id === Payload.id)?.identity }
   }
   const RequestId = ++NextRequestId
   return new Promise((Resolve, Reject) => {
@@ -81,6 +86,13 @@ function Render() {
   Elements.characterPanel.hidden = CurrentTab !== 'characters'
   Elements.equipmentPanel.hidden = CurrentTab !== 'equipment'
   RenderEquipment()
+  Elements.deleteNpc.hidden = !Selected
+  Elements.deleteNpc.disabled = DeleteBusy || EquipmentBusy || !State.ready || !State.worldLoaded
+  if (!Selected || DeletionTarget?.identity !== Selected.identity) DeletionTarget = null
+  Elements.deleteConfirmation.hidden = !DeletionTarget
+  Elements.deleteQuestion.textContent = DeletionTarget ? 'Удалить «' + DeletionTarget.name + '»?' : ''
+  Elements.confirmDelete.disabled = DeleteBusy || EquipmentBusy
+  Elements.cancelDelete.disabled = DeleteBusy
   Elements.properties.hidden = !Selected
   Elements.selectedName.textContent = Selected?.name || 'Новый персонаж'
   Elements.slotBadge.textContent = Selected ? 'СЛОТ ' + (Selected.id % 80 + 1) + (Selected.female ? ' · Ж' : ' · М') : 'СВОБОДНЫЙ СЛОТ'
@@ -138,7 +150,7 @@ async function LoadEquipment(ActionName = 'equipment', Payload = {}) {
   } catch (ErrorValue) { Message(ErrorValue.message, true) }
   finally {
     EquipmentBusy = false
-    RenderEquipment()
+    Render()
     if (CurrentTab === 'equipment' && RequestedId !== SelectedId && SelectedId !== null) LoadEquipment()
   }
 }
@@ -151,7 +163,7 @@ function RenderEquipment() {
   Elements.charactersTab.classList.toggle('active', CurrentTab === 'characters')
   Elements.equipmentTab.classList.toggle('active', CurrentTab === 'equipment')
   if (!Ready) return
-  const CanChange = !EquipmentBusy && !Selected.parked && !Selected.dead && State.ready && State.worldLoaded
+  const CanChange = !EquipmentBusy && !DeleteBusy && !Selected.parked && !Selected.dead && State.ready && State.worldLoaded
   const PreviousPreset = Elements.equipmentPreset.value
   Elements.equipmentPreset.replaceChildren()
   for (const Preset of Equipment.presets) {
@@ -196,4 +208,27 @@ Elements.savePreset.onclick = () => {
   const Name = Elements.presetName.value.trim()
   if (!Name) { Message('Введите имя набора', true); return }
   LoadEquipment('saveEquipmentPreset', { name: Name })
+}
+
+Elements.deleteNpc.onclick = () => {
+  const Selected = State?.slots.find(Slot => Slot.id === SelectedId)
+  if (!Selected || EquipmentBusy || DeleteBusy) return
+  DeletionTarget = { id: Selected.id, identity: Selected.identity, name: Selected.name }
+  Render()
+}
+Elements.cancelDelete.onclick = () => { DeletionTarget = null; Render() }
+Elements.confirmDelete.onclick = async () => {
+  if (!DeletionTarget || EquipmentBusy || DeleteBusy) return
+  const Target = DeletionTarget
+  DeleteBusy = true
+  Render()
+  try {
+    await Send('delete', { id: Target.id, identity: Target.identity, confirmed: true })
+    Equipment = null
+    EquipmentOwnerId = null
+    if (SelectedId === Target.id) SelectedId = null
+    DeletionTarget = null
+    Message('Персонаж удалён, слот очищен. Сохраните игру, чтобы сохранить удаление.')
+  } catch (ErrorValue) { Message(ErrorValue.message, true) }
+  finally { DeleteBusy = false; Render() }
 }
