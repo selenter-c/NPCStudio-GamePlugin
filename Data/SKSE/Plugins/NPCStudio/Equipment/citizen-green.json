@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "name": "Паломник в зелёном",
+  "category": "Путники",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 1101808,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 765143,
+      "count": 1
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "name": "Знать: наряд и шляпа",
+  "category": "Гражданские",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 847488,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 847490,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 847492,
+      "count": 1
+    }
+  ]
+}

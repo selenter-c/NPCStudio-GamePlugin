@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "name": "Фермер: льняная одежда",
+  "category": "Гражданские",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 133542,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 133541,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 133546,
+      "count": 1
+    }
+  ]
+}

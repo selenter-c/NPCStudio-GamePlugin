@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "name": "Узник",
+  "category": "Гражданские",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 248318,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 248320,
+      "count": 1
+    }
+  ]
+}

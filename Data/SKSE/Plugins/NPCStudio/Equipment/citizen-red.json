@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "name": "Жрец в красном",
+  "category": "Маги",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 1101810,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 765143,
+      "count": 1
+    }
+  ]
+}

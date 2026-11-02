@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "name": "Имперский разведчик",
+  "category": "Армии",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 81625,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 81623,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 81626,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 81627,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80261,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80253,
+      "count": 100
+    }
+  ]
+}

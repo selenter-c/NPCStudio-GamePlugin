@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "name": "Фермер: перчатки и шляпа",
+  "category": "Гражданские",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 156096,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 156093,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 156097,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 209075,
+      "count": 1
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "name": "Лёгкий охотник",
+  "category": "Путники",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80145,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80144,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80261,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80253,
+      "count": 100
+    }
+  ]
+}

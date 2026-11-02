@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "name": "Воин: эльфийский доспех",
+  "category": "Воины",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 562851,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80154,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80156,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80157,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80158,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80265,
+      "count": 1
+    }
+  ]
+}

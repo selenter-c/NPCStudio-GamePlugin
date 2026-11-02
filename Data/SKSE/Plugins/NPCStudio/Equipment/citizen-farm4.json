@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "name": "Ремесленник",
+  "category": "Гражданские",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 214318,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 214319,
+      "count": 1
+    }
+  ]
+}

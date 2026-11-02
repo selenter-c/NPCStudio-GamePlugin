@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "name": "Брат Бури",
+  "category": "Армии",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683387,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683391,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683389,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 683385,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 77495,
+      "count": 1
+    }
+  ]
+}

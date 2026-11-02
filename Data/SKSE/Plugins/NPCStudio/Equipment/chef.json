@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "name": "Повар таверны",
+  "category": "Гражданские",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 113794,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 100353,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 113831,
+      "count": 1
+    }
+  ]
+}

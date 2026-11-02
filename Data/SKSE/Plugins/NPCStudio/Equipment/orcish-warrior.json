@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "name": "Воин: орочий доспех",
+  "category": "Воины",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80215,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80214,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80216,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80217,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80198,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80265,
+      "count": 1
+    }
+  ]
+}

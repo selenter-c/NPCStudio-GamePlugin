@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "name": "Торговец",
+  "category": "Гражданские",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 270908,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 270909,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 270907,
+      "count": 1
+    }
+  ]
+}

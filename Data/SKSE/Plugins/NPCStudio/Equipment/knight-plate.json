@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "name": "Рыцарь: стальные латы",
+  "category": "Воины",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80220,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80219,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80221,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80222,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80265,
+      "count": 1
+    }
+  ]
+}

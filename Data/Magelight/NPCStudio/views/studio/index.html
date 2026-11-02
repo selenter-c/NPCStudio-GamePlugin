@@ -1,24 +1,304 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NPC Studio</title><link rel="stylesheet" href="style.css"></head>
-<body>
-<main class="studio">
-<header><div><span class="eyebrow">МАСТЕРСКАЯ ПЕРСОНАЖЕЙ</span><h1>NPC STUDIO <small>0.3.1</small></h1></div><span id="connection" role="status">Подключение к игре…</span><button id="close" aria-label="Закрыть">×</button></header>
-<aside class="navigation"><button id="charactersTab" class="active">Персонажи</button><button disabled title="Следующий этап разработки">Внешность</button><button id="equipmentTab">Снаряжение</button><button disabled title="Следующий этап разработки">Пресеты</button><button disabled title="Следующий этап разработки">Биография</button><div class="pool"><h3>Постоянный резерв</h3><label>Женские <b id="femaleCount">0 / 80</b></label><progress id="femaleProgress" max="80" value="0"></progress><label>Мужские <b id="maleCount">0 / 80</b></label><progress id="maleProgress" max="80" value="0"></progress></div><p class="hint">F8 — открыть и закрыть<br>Esc — закрыть</p></aside>
-<section class="roster"><div class="section-head"><h2>Мои персонажи</h2><button id="refresh" title="Обновить">↻</button></div><input id="search" type="search" placeholder="Поиск по имени…" aria-label="Поиск NPC"><div id="list" class="list"></div><p id="empty" class="muted">Здесь появятся созданные персонажи.</p></section>
-<section class="detail"><div class="section-head"><h2 id="selectedName">Новый персонаж</h2><span id="slotBadge" class="badge">СВОБОДНЫЙ СЛОТ</span><button id="deleteNpc" class="danger" hidden>Удалить NPC</button></div><div id="deleteConfirmation" class="delete-confirmation" hidden><p id="deleteQuestion"></p><p>Имя и данные персонажа будут очищены, его вещи удалены, слот станет свободным. Сохранённые наборы останутся в библиотеке.</p><button id="confirmDelete" class="danger">Удалить и очистить слот</button> <button id="cancelDelete">Отмена</button></div><div id="characterPanel"><div class="preview"><div class="silhouette">♙</div><h3>Мастерская NPC</h3><p>Выберите персонажа или создайте нового рядом с собой.</p><p class="muted">3D-превью появится после проверки игрового рендера.</p></div><div id="properties" hidden><label>Имя<input id="editName" maxlength="80"></label><div class="facts"><span>Раса</span><b id="race"></b><span>Ссылка в мире</span><code id="reference"></code><span>Состояние</span><b id="status"></b></div><button id="rename">Сохранить имя</button><div class="actions"><button id="summon">Призвать ко мне</button><button id="teleport">Перейти к NPC</button><button id="park">Убрать из мира</button></div><p class="muted">Убранный NPC сохраняет свой слот. Призыв возвращает того же персонажа.</p></div></div><div id="equipmentPanel" hidden>
-<p id="equipmentEmpty" class="muted">Выберите NPC в списке слева.</p>
-<div id="equipmentContent" hidden>
-<div class="section-head"><h3>Наборы снаряжения</h3><button id="equipmentRefresh">Обновить</button></div>
-<select id="equipmentPreset" aria-label="Набор снаряжения"></select>
-<p id="presetDescription" class="muted"></p><button id="applyPreset">Выдать и надеть набор</button>
-<p class="muted">Прежние вещи останутся в инвентаре. Повторное применение довыдаёт недостающее.</p>
-<label>Имя нового набора<input id="presetName" maxlength="80" placeholder="Мой наряд"></label>
-<button id="savePreset">Сохранить надетое в набор</button>
-<p class="muted">Сохраняются базовые предметы. Улучшение у кузнеца, пользовательское зачарование и выбор руки не переносятся.</p>
-<h3>Инвентарь NPC</h3><div id="equipmentInventory" class="list"></div>
-<h3>Каталог предметов</h3><form id="equipmentSearchForm"><select id="equipmentKind" aria-label="Тип предметов"><option value="armor">Одежда и броня</option><option value="weapon">Оружие</option><option value="ammo">Стрелы и болты</option></select><input id="equipmentQuery" placeholder="Название предмета или плагина" maxlength="80" aria-label="Поиск предметов"><button type="submit">Найти</button></form>
-<p id="equipmentMatches" class="muted"></p><div id="equipmentCatalog" class="list"></div>
-</div></div></section>
-<section class="create"><span class="eyebrow">НОВЫЙ NPC</span><h2>Создать рядом</h2><p class="muted">Каждый персонаж получает собственный постоянный слот.</p><form id="createForm"><label>Имя<input id="newName" required maxlength="80" placeholder="Имя персонажа" autocomplete="off"></label><label>Пол<select id="sex"><option value="female">Женский</option><option value="male">Мужской</option></select></label><button class="primary" type="submit" id="createButton">Создать персонажа</button></form><p id="notice" class="notice" role="status"></p><p class="muted small">Изменения мира сохраняются обычным сохранением Skyrim вместе с файлом SKSE.</p></section>
-<footer><span id="message" role="status">Готово</span><span>MAGELIGHT UI · SKYRIM 1.6.1170</span></footer>
-</main><script src="script.js"></script></body></html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>NPCStudio</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <svg class="svg-sprite" aria-hidden="true">
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24">
+        <path
+          d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M16 3a4 4 0 0 1 0 8M22 21v-2a4 4 0 0 0-3-3.87M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0"
+        />
+      </symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24">
+        <path d="M12 3 3 7v6c0 5 9 9 9 9s9-4 9-9V7l-9-4Z M8 12l3 3 5-6" />
+      </symbol>
+      <symbol id="i-layers" viewBox="0 0 24 24">
+        <path d="m12 3 10 6-10 6L2 9l10-6Zm-9 12 9 6 9-6M3 12l9 6 9-6" />
+      </symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24">
+        <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2" />
+      </symbol>
+      <symbol id="i-dice" viewBox="0 0 24 24">
+        <path
+          d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2ZM7 7h.01M17 7h.01M12 12h.01M7 17h.01M17 17h.01"
+        />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6" /></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24">
+        <path d="M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 13 2M5 16a8 8 0 0 0 13 2" />
+      </symbol>
+      <symbol id="i-person" viewBox="0 0 24 24">
+        <path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8ZM4 22v-3a8 8 0 0 1 16 0v3" />
+      </symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5" /></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7" /></symbol>
+      <symbol id="i-save" viewBox="0 0 24 24"><path d="M4 3h14l3 3v15H3V3h1Zm3 0v6h10V3M7 21v-8h10v8" /></symbol>
+    </svg>
+    <main class="studio">
+      <header>
+        <div class="brand">
+          <span class="brand-mark">◇</span>
+          <div>
+            <h1>NPC STUDIO <small>0.4</small></h1>
+            <span class="eyebrow">МАСТЕРСКАЯ ПЕРСОНАЖЕЙ</span>
+          </div>
+        </div>
+        <span id="connection" class="connection">Подключение…</span
+        ><button id="close" class="icon-button" aria-label="Закрыть">
+          <svg class="icon" aria-hidden="true"><use href="#i-close" /></svg>
+        </button>
+      </header>
+      <aside class="navigation">
+        <span class="nav-label">МАСТЕРСКАЯ</span
+        ><button data-tab="create" class="active">
+          <svg class="icon" aria-hidden="true"><use href="#i-plus" /></svg> Создать NPC</button
+        ><button data-tab="roster">
+          <svg class="icon" aria-hidden="true"><use href="#i-users" /></svg> Мои персонажи
+          <b id="rosterCount">0</b></button
+        ><button data-tab="equipment">
+          <svg class="icon" aria-hidden="true"><use href="#i-shield" /></svg> Снаряжение</button
+        ><button data-tab="presets">
+          <svg class="icon" aria-hidden="true"><use href="#i-layers" /></svg> Библиотека наборов
+        </button>
+        <div class="nav-divider"></div>
+        <button disabled title="В разработке">
+          <svg class="icon" aria-hidden="true"><use href="#i-person" /></svg> Внешность</button
+        ><button disabled title="В разработке">
+          <svg class="icon" aria-hidden="true"><use href="#i-layers" /></svg> Биография</button
+        ><button data-tab="settings" class="settings-nav">
+          <svg class="icon" aria-hidden="true"><use href="#i-settings" /></svg> Настройки
+        </button>
+        <div class="reserve">
+          <span>ПОСТОЯННЫЙ РЕЗЕРВ</span><label>Женские <b id="femaleCount">0 / 200</b></label
+          ><progress id="femaleProgress" max="200" value="0"></progress
+          ><label>Мужские <b id="maleCount">0 / 200</b></label
+          ><progress id="maleProgress" max="200" value="0"></progress>
+        </div>
+        <span id="hotkeyHint" class="hotkey">Shift + F8</span>
+      </aside>
+      <div class="workspace">
+        <div class="workspace-head">
+          <div>
+            <span class="eyebrow" id="pageEyebrow">НОВЫЙ ПЕРСОНАЖ</span>
+            <h2 id="pageTitle">Создать рядом</h2>
+          </div>
+          <div class="head-actions">
+            <select id="actorPicker" aria-label="Выбранный персонаж"></select
+            ><button id="refresh" class="icon-button" title="Обновить">
+              <svg class="icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+            </button>
+          </div>
+        </div>
+        <p id="notice" class="notice" hidden></p>
+        <section id="createPage" class="page">
+          <div class="two-columns">
+            <form id="createForm" class="card">
+              <div class="card-heading">
+                <svg class="icon" aria-hidden="true"><use href="#i-person" /></svg>
+                <h3>Персонаж</h3>
+              </div>
+              <label
+                >Имя
+                <div class="input-action">
+                  <input id="newName" required maxlength="80" placeholder="Имя персонажа" autocomplete="off" /><button
+                    id="randomName"
+                    type="button"
+                    title="Случайное имя"
+                  >
+                    <svg class="icon" aria-hidden="true"><use href="#i-dice" /></svg>
+                  </button></div
+              ></label>
+              <p id="nameSource" class="muted small">
+                Случайные имена из установленного Tamrielic Names, включая русский перевод.
+              </p>
+              <div class="form-grid">
+                <label
+                  >Пол<select id="sex">
+                    <option value="female">Женский</option>
+                    <option value="male">Мужской</option>
+                  </select></label
+                ><label>Слот<select id="slotSelect"></select></label>
+              </div>
+              <p id="slotInfo" class="muted small"></p>
+              <div class="section-line"></div>
+              <div class="card-heading">
+                <svg class="icon" aria-hidden="true"><use href="#i-shield" /></svg>
+                <h3>Обмундирование при создании</h3>
+              </div>
+              <div class="form-grid">
+                <label>Категория<select id="creationCategory"></select></label
+                ><label>Набор<select id="creationPreset"></select></label>
+              </div>
+              <p id="creationPresetInfo" class="muted small"></p>
+              <button id="createButton" type="submit" class="primary">
+                <svg class="icon" aria-hidden="true"><use href="#i-plus" /></svg> Создать персонажа
+              </button>
+            </form>
+            <div class="stack">
+              <div class="card spawn-summary">
+                <span class="badge">200 + 200 СЛОТОВ</span>
+                <h3>Собственный персонаж<br />с постоянной ссылкой</h3>
+                <p>Появится рядом с вами. Выбранный комплект выдаётся после загрузки модели.</p>
+                <div class="steps">
+                  <span><b>01</b> Имя и свободный слот</span><span><b>02</b> Набор снаряжения</span
+                  ><span><b>03</b> Создание и сохранение игры</span>
+                </div>
+              </div>
+              <div class="card">
+                <h3>История слотов</h3>
+                <p class="legend"><i class="dot fresh"></i> Новый — ещё не использовался</p>
+                <p class="legend"><i class="dot used"></i> Повторный — прежний NPC удалён</p>
+                <p class="legend"><i class="dot unknown"></i> История до версии 0.4 неизвестна</p>
+                <p class="muted small">
+                  Автоматический выбор сначала использует новые слоты. При повторном использовании ссылка в мире
+                  остаётся прежней.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section id="rosterPage" class="page" hidden>
+          <div class="roster-layout">
+            <div class="card">
+              <input id="search" type="search" placeholder="Поиск персонажей…" aria-label="Поиск NPC" />
+              <div id="list" class="roster-list"></div>
+              <p id="empty" class="muted">Персонажей пока нет.</p>
+            </div>
+            <div class="card inspector">
+              <div class="card-heading">
+                <svg class="icon" aria-hidden="true"><use href="#i-person" /></svg>
+                <h3 id="selectedName">Выберите персонажа</h3>
+                <span id="slotBadge" class="badge"></span>
+              </div>
+              <div id="properties" hidden>
+                <label
+                  >Имя
+                  <div class="input-action">
+                    <input id="editName" maxlength="80" /><button
+                      id="randomExistingName"
+                      title="Предложить случайное имя"
+                    >
+                      <svg class="icon" aria-hidden="true"><use href="#i-dice" /></svg>
+                    </button></div></label
+                ><button id="rename">Сохранить имя</button>
+                <div class="facts">
+                  <span>Раса</span><b id="race"></b><span>Ссылка</span><code id="reference"></code><span>Состояние</span
+                  ><b id="status"></b>
+                </div>
+                <p id="actorWarning" class="muted small"></p>
+                <div class="action-grid">
+                  <button id="summon">Призвать</button><button id="teleport">Перейти к NPC</button
+                  ><button id="park">Скрыть из мира</button><button id="openEquipment">Снаряжение</button>
+                </div>
+                <button id="deleteNpc" class="danger">
+                  <svg class="icon" aria-hidden="true"><use href="#i-trash" /></svg> Удалить NPC
+                </button>
+                <div id="deleteConfirmation" class="delete-confirmation" hidden>
+                  <p id="deleteQuestion"></p>
+                  <p class="small">Данные NPC и его вещи удалятся. Слот будет помечен как использованный.</p>
+                  <button id="confirmDelete" class="danger">Удалить и очистить</button
+                  ><button id="cancelDelete">Отмена</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section id="equipmentPage" class="page" hidden>
+          <p id="equipmentEmpty" class="empty-card">Выберите NPC в верхнем списке или во вкладке «Мои персонажи».</p>
+          <div id="equipmentContent" class="equipment-layout" hidden>
+            <div class="card">
+              <div class="card-heading">
+                <svg class="icon" aria-hidden="true"><use href="#i-shield" /></svg>
+                <h3>Инвентарь</h3>
+                <button id="equipmentRefresh" class="icon-button" title="Проверить">
+                  <svg class="icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                </button>
+              </div>
+              <p id="equipmentAudit" class="muted small"></p>
+              <div id="equipmentInventory" class="item-list"></div>
+            </div>
+            <div class="card">
+              <div class="card-heading">
+                <svg class="icon" aria-hidden="true"><use href="#i-layers" /></svg>
+                <h3>Каталог предметов</h3>
+              </div>
+              <form id="equipmentSearchForm" class="catalog-search">
+                <select id="equipmentKind" aria-label="Тип">
+                  <option value="armor">Одежда и броня</option>
+                  <option value="weapon">Оружие</option>
+                  <option value="ammo">Стрелы и болты</option></select
+                ><input
+                  id="equipmentQuery"
+                  placeholder="Название или плагин"
+                  maxlength="80"
+                  aria-label="Поиск предметов"
+                /><button type="submit">Найти</button>
+              </form>
+              <p id="equipmentMatches" class="muted small"></p>
+              <div id="equipmentCatalog" class="item-list"></div>
+            </div>
+          </div>
+        </section>
+        <section id="presetsPage" class="page" hidden>
+          <div class="library-toolbar">
+            <label>Категория<select id="presetCategory"></select></label
+            ><label>Набор<select id="equipmentPreset"></select></label
+            ><button id="applyPreset" class="primary">Выдать и надеть</button>
+          </div>
+          <p id="presetDescription" class="muted small"></p>
+          <div id="presetCards" class="preset-grid"></div>
+          <div class="two-columns">
+            <div class="card">
+              <div class="card-heading">
+                <svg class="icon" aria-hidden="true"><use href="#i-save" /></svg>
+                <h3>Сохранить надетое</h3>
+              </div>
+              <p class="muted small">С выбранного NPC. Базовые вещи без улучшений и пользовательских зачарований.</p>
+              <div class="form-grid">
+                <label>Название<input id="presetName" maxlength="80" placeholder="Мой комплект" /></label
+                ><label>Категория<select id="saveCategory"></select></label>
+              </div>
+              <button id="savePreset">Сохранить набор</button>
+            </div>
+            <div class="card">
+              <div class="card-heading">
+                <svg class="icon" aria-hidden="true"><use href="#i-layers" /></svg>
+                <h3>Своя категория</h3>
+              </div>
+              <label>Название<input id="categoryName" maxlength="80" placeholder="Например, мой отряд" /></label
+              ><button id="addCategory">Создать категорию</button>
+            </div>
+          </div>
+        </section>
+        <section id="settingsPage" class="page" hidden>
+          <div class="card settings-card">
+            <div class="card-heading">
+              <svg class="icon" aria-hidden="true"><use href="#i-settings" /></svg>
+              <h3>Открытие интерфейса</h3>
+            </div>
+            <p class="muted">По умолчанию Shift + F8. Настройки общие для сохранений текущей установки мода.</p>
+            <label>Основная клавиша<select id="hotkeyKey"></select></label><label>Модификаторы</label>
+            <div class="modifier-options">
+              <label><input type="checkbox" id="modifierShift" /> Shift</label
+              ><label><input type="checkbox" id="modifierCtrl" /> Ctrl</label
+              ><label><input type="checkbox" id="modifierAlt" /> Alt</label>
+            </div>
+            <p id="hotkeyPreview" class="badge"></p>
+            <div class="actions">
+              <button id="saveSettings" class="primary">Сохранить настройки</button
+              ><button id="resetSettings">По умолчанию</button>
+            </div>
+            <p class="muted small">Esc закрывает меню. Сочетание действует в игровом мире при закрытых игровых меню.</p>
+          </div>
+        </section>
+      </div>
+      <footer><span id="message" role="status">Готово</span><span>MAGELIGHT UI · SKYRIM 1.6.1170</span></footer>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>

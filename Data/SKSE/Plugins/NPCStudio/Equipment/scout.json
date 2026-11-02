@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "name": "Следопыт",
+  "category": "Путники",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 221598,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80160,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80161,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80162,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80261,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80253,
+      "count": 100
+    }
+  ]
+}

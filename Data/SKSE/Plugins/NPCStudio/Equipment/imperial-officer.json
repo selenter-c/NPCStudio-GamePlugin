@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "name": "Имперский офицер",
+  "category": "Армии",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 79573,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 79574,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 79572,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 79567,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80265,
+      "count": 1
+    }
+  ]
+}

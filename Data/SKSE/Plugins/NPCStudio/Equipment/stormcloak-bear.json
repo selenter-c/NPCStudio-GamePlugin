@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "name": "Офицер Братьев Бури",
+  "category": "Армии",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 551294,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 551297,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 551299,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 551301,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80265,
+      "count": 1
+    }
+  ]
+}

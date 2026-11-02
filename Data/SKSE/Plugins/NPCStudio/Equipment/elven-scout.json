@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "name": "Эльфийский разведчик",
+  "category": "Путники",
+  "items": [
+    {
+      "plugin": "Skyrim.esm",
+      "form": 1072914,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 1072913,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 1072915,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 1072916,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80261,
+      "count": 1
+    },
+    {
+      "plugin": "Skyrim.esm",
+      "form": 80253,
+      "count": 100
+    }
+  ]
+}
