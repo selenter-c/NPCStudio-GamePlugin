@@ -900,3 +900,7 @@ header > #close {
 .item-preview-panel .preview-viewport, .item-preview-panel .preview-viewport img { height: min(48vh, 430px); }
 .item-preview-panel .preview-viewport img { object-fit: contain; }
 .equipment-item > span { flex: 1; }
+
+/* Текст интерфейса не выделяется; поля остаются редактируемыми. */
+body { user-select: none; -webkit-user-select: none; cursor: default; }
+input, textarea { user-select: text; -webkit-user-select: text; }

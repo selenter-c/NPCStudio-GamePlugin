@@ -1027,9 +1027,21 @@ Elements.itemPreviewViewport.onpointerdown = (Event) => {
 Elements.itemPreviewViewport.onpointermove = (Event) => {
   if (!ItemDrag) return
   Elements.itemPreviewYaw.value = String(((ItemDrag.yaw + (Event.clientX - ItemDrag.x) * .6 + 540) % 360) - 180)
-  Elements.itemPreviewYaw.dispatchEvent(new Event('input'))
+  Elements.itemPreviewYaw.dispatchEvent(new window.Event('input'))
 }
 Elements.itemPreviewViewport.onpointerup = () => { ItemDrag = null; RequestItemPreview() }
 Elements.itemPreviewViewport.onpointercancel = () => { ItemDrag = null }
 
 Send('state').catch((Failure) => Message(Failure.message, true))
+
+for (const [Viewport, Slider] of [
+  [Elements.previewViewport, Elements.previewZoom],
+  [Elements.itemPreviewViewport, Elements.itemPreviewZoom],
+]) {
+  if (!Viewport || !Slider) continue
+  Viewport.addEventListener('wheel', Event => {
+    Event.preventDefault()
+    Slider.value = String(Math.max(.5, Math.min(2.5, Number(Slider.value) * Math.exp(-Event.deltaY * .001))))
+    Slider.dispatchEvent(new window.Event('input'))
+  }, { passive: false })
+}
