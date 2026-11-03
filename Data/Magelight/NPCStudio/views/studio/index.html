@@ -52,7 +52,7 @@
             <path d="m30 12 2 3 4 1-4 2-2 4-1-4-4-2 4-1Z" />
           </svg>
           <div>
-            <h1>NPC STUDIO <small>0.5.1</small></h1>
+            <h1>NPC STUDIO <small>0.6.0</small></h1>
             <span class="eyebrow">ПЕРСОНАЖИ, КОТОРЫЕ ОСТАНУТСЯ В ВАШЕМ МИРЕ</span>
           </div>
         </div>
@@ -198,9 +198,12 @@
               </div>
               <label
                 >Освещение<select id="previewLight">
-                  <option value="0">Студия</option>
-                  <option value="1">Тёплый свет</option>
-                  <option value="2">Холодный свет</option>
+                  <option value="studio">Студия</option>
+                  <option value="daylight">Дневной свет</option>
+                  <option value="hearth">У очага</option>
+                  <option value="torchlight">Факел</option>
+                  <option value="moonlight">Лунный свет</option>
+                  <option value="here">Как в игре</option>
                 </select></label
               >
               <p class="muted small">
@@ -364,6 +367,15 @@
         ><span>MAGELIGHT UI · SKYRIM 1.6.1170</span>
       </footer>
     </main>
+    <aside id="itemPreviewPanel" class="item-preview-panel card" hidden>
+      <div class="card-heading"><h3 id="itemPreviewName"></h3><button id="itemPreviewClose" class="icon-button" title="Закрыть">×</button></div>
+      <div id="itemPreviewViewport" class="preview-viewport"><img id="itemPreviewImage" alt="3D-превью предмета" draggable="false" hidden /></div>
+      <p id="itemPreviewStatus" class="muted small"></p>
+      <div class="preview-controls">
+        <label>Поворот<input id="itemPreviewYaw" type="range" min="-180" max="180" value="0" /></label>
+        <label>Масштаб<input id="itemPreviewZoom" type="range" min="0.5" max="2.5" step="0.1" value="1" /></label>
+      </div>
+    </aside>
     <script src="i18n.js"></script>
     <script src="script.js"></script>
   </body>

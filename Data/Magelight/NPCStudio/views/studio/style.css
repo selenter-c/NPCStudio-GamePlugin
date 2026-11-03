@@ -894,3 +894,9 @@ header > #close {
   width: 100%;
   height: clamp(280px, 48vh, 520px);
 }
+
+.item-preview-panel { position: fixed; z-index: 40; right: 5vw; top: 12vh; width: min(420px, 70vw); box-shadow: 0 18px 80px #000b; background: var(--panel, #1b1621); }
+.item-preview-panel h3 { flex: 1; overflow-wrap: anywhere; }
+.item-preview-panel .preview-viewport, .item-preview-panel .preview-viewport img { height: min(48vh, 430px); }
+.item-preview-panel .preview-viewport img { object-fit: contain; }
+.equipment-item > span { flex: 1; }

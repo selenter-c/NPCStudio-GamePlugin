@@ -1,9 +1,7 @@
-# NPCStudio — игровые файлы0.5.1
+# NPCStudio — игровые файлы0.6.0
 
-Тестовая сборка, нужна **новая игра**. Импорта старых сохранений и сохранения прежних адресов слотов больше нет.
+Новая игра, Skyrim1.6.1170, SKSE, Address Library, Magelight UI1.5+ и Phantasm0.3.0 ccf916f72d59. Открытие Shift+8. Установить оба ZIP из NPCStudio-Build/dist: NPCStudio-0.6.0-fomod.zip и NPCStudio-Phantasm-0.3.0-local.zip. Полный SeverActions включать не нужно; в VFS должна побеждать проверенная версия Phantasm.dll.
 
-Единый пул400: id0..199 женские1..200, id200..399 мужские1..200. CLFM900+id, NPCB00+id, ACHRD00+id; CELL800/XMarker801. Всего1202 формы, максимумE8F, ESL. slots.json schema3. Слоты только новые или использованные; при удалении сохраняется факт использования в текущей игре.
+UI English/Русский,4 палитры,400 постоянных слотов (200+200), раса и комплект при создании, история слотов, Tamrielic/NND случайные имена,40 наборов и свои категории, сохранение одежды при возврате NPC. В0.6.0 подключён отдельный renderer SeverActions через Phantasm API: живые виды NPC,6 lights, аватары,3D кнопка у предметов. Детали — соседний NativePlugin/docs/RENDERING_060.md. Игровая стабильность новой интеграции пока не подтверждена.
 
-Skyrim1.6.1170, SKSE, Address Library, MagelightUI1.5+. UI English/Русский, Shift+8, палитры, создание с набором и стандартной расой, roster/снаряжение/библиотека. Новый native SwitchRace вместо отклонявшегося VM-вызова; реальная смена расы ещё требует ручного теста. Подробности и ограничения экспериментального рендера — соседний NativePlugin/README.md.
-
-Закрыть игру, установить ZIP целиком, начать новую игру. Сохранить свои Equipment/user-*.json/categories.json/settings.json и MO2 overwrite. Сборка через Build/build.bat. Legacy/0.1.0 не пакуется.
+CLFM900+id, NPCB00+id, ACHRD00+id; CELL800/XMarker801. Всего1202 формы доE8F, ESL, slots.json schema3. Только текущая схема, миграций прежних сохранений нет. Legacy/0.1.0 не пакуется. Сохранить собственные user-*.json/categories.json/settings.json и MO2 overwrite перед заменой файлов. Сборка через Build/build.bat. Установку и игровой тест выполняет пользователь.

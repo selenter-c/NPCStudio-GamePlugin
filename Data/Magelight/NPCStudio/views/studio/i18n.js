@@ -394,3 +394,16 @@ Object.assign(English, {
   'Эта тестовая сборка требует новую игру. Старые сохранения NPCStudio не поддерживаются':
     'This test build requires a new game. Older NPCStudio saves are not supported',
 })
+
+Object.assign(English, {
+  'Живое превью · Phantasm': 'Live preview · Phantasm',
+  'Посмотреть предмет': 'Preview item',
+  '3D-превью предмета': '3D item preview',
+  'Дневной свет': 'Daylight', 'У очага': 'Hearth', 'Факел': 'Torchlight', 'Лунный свет': 'Moonlight', 'Как в игре': 'In-game lighting',
+})
+Object.assign(RussianMessages, {
+  'Install and enable Phantasm 0.3.0 from the supplied local dependency archive, then restart Skyrim': 'Установите и включите Phantasm 0.3.0 из отдельного локального архива, затем перезапустите Skyrim',
+  'Unsupported Phantasm build: expected 0.3.0 ccf916f72d59': 'Нужна проверенная сборка Phantasm 0.3.0 ccf916f72d59',
+  'Portrait queue is full': 'Очередь портретов заполнена',
+  'Unsupported preview item': 'Этот предмет не поддерживает 3D-превью',
+})

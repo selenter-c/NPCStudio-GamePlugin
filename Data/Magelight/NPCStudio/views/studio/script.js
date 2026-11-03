@@ -64,7 +64,7 @@ function Send(Action, Payload = {}, Quiet = false) {
       Pending.delete(RequestId)
       Reject(new Error(T('Игра не ответила. Обновите данные перед повторным действием')))
     }, 15000)
-    Pending.set(RequestId, { Resolve, Reject, Timeout, Quiet })
+    Pending.set(RequestId, { Resolve, Reject, Timeout, Quiet, PreviewSequence })
     window.magelight.send('studioCommand', { action: Action, requestId: RequestId, ...Payload })
   })
 }
@@ -82,13 +82,13 @@ window.studioResponse = (Payload) => {
       if (!Request?.Quiet) Message(Failure.message, true)
       return
     }
-    State = Response.state
-    if (State.portrait) Portraits.set(State.portrait.identity, State.portrait.portrait)
-    if (State.preview) {
-      PreviewFrame = State.preview
-      if (PreviewFrame.portrait) Portraits.set(PreviewFrame.identity, PreviewFrame.portrait)
-      while (Portraits.size > 80) Portraits.delete(Portraits.keys().next().value)
+    if (Response.state.partial) {
+      const Update = Response.state.preview || Response.state.portrait || Response.state.itemPreview
+      if (Update && Request?.PreviewSequence === PreviewSequence) ReceivePreview(Update)
+      Request?.Resolve(Response.state)
+      return
     }
+    State = Response.state
     if (State.equipment) {
       Equipment = State.equipment
       EquipmentOwnerId = State.equipmentOwnerId
@@ -398,7 +398,11 @@ function RenderEquipment() {
         count: Item.kind === 'ammo' ? 100 : 1,
       })
     Info.append(Title, Source)
-    Container.append(Info, Button)
+    const View = document.createElement('button')
+    View.textContent = '3D'
+    View.title = T('Посмотреть предмет')
+    View.onclick = () => OpenItemPreview(Item)
+    Container.append(Info, View, Button)
     return Container
   }
   Elements.equipmentInventory.replaceChildren(...Equipment.inventory.map((Item) => Row(Item, true)))
@@ -406,6 +410,7 @@ function RenderEquipment() {
   Elements.equipmentMatches.textContent = T('Найдено: ') + Equipment.matches + T(' · показаны первые 100')
 }
 function SelectActor(Id) {
+  StopPreview()
   SelectedId = Id === '' ? null : Number(Id)
   DeletionTarget = null
   Equipment = null
@@ -413,6 +418,7 @@ function SelectActor(Id) {
   if (CurrentTab === 'equipment' && SelectedId !== null) LoadEquipment()
 }
 function Tab(Name) {
+  StopPreview()
   CurrentTab = Name
   CloseCombo()
   Render()
@@ -744,8 +750,16 @@ window.magelight?.on('__uimode', (Value) => {
   if (!UIVisible) {
     clearTimeout(PortraitTimer)
     PortraitTimer = null
-    clearTimeout(CameraTimer)
+    cancelAnimationFrame(CameraTimer)
     CameraTimer = null
+    PreviewAgain = false
+    ++PreviewSequence
+    PreviewBusy = false
+    ItemBusy = false
+    ItemAgain = false
+    PortraitBusy = false
+    ItemTarget = null
+    Elements.itemPreviewPanel.hidden = true
   }
   if (String(Value) === '1') {
     PreviewAttempt = ''
@@ -775,6 +789,7 @@ const Portraits = new Map()
 const PortraitAttempts = new Set()
 let PortraitTimer = null
 let PortraitBusy = false
+let LastCameraInput = 0
 function SchedulePortrait() {
   if (
     !UIVisible ||
@@ -802,6 +817,7 @@ function SchedulePortrait() {
   PortraitTimer = setTimeout(async () => {
     PortraitTimer = null
     if (!UIVisible || CurrentTab !== 'roster' || PreviewBusy || MutationBusy || Pending.size) return
+    if (performance.now() - LastCameraInput < 1000) { SchedulePortrait(); return }
     PortraitAttempts.add(Actor.identity)
     PortraitBusy = true
     try {
@@ -818,9 +834,10 @@ let PreviewBusy = false
 let PreviewAttempt = ''
 let PreviewError = ''
 let PreviewAgain = false
+let PreviewSequence = 0
 function RenderPreview() {
   const Actor = CurrentActor()
-  const Valid = Actor && !Actor.restoring && PreviewFrame?.identity === Actor.identity
+  const Valid = Actor && !Actor.restoring && PreviewFrame?.identity === Actor.identity && !!PreviewFrame.image
   Elements.previewImage.hidden = !Valid
   Elements.previewEmpty.hidden = !!Valid
   if (Valid && Elements.previewImage.getAttribute('src') !== PreviewFrame.image)
@@ -829,9 +846,7 @@ function RenderPreview() {
     ? T('Загрузка модели…')
     : PreviewError ||
       (Valid
-        ? T('Снимок модели · частей: ') +
-          PreviewFrame.meshes +
-          (PreviewFrame.skipped ? T(' · пропущено: ') + PreviewFrame.skipped : '')
+        ? T('Живое превью · Phantasm')
         : T('Для превью нужна загруженная модель NPC.'))
   Elements.previewRefresh.disabled = !Actor || Actor.parked || Actor.dead || Actor.restoring || PreviewBusy
   if (
@@ -856,6 +871,7 @@ async function RequestPreview(Capture = false) {
     return
   }
   if (Capture) Portraits.delete(Actor.identity)
+  const Sequence = PreviewSequence
   PreviewAttempt = Actor.identity
   PreviewBusy = true
   PreviewError = ''
@@ -866,30 +882,32 @@ async function RequestPreview(Capture = false) {
       capture: Capture,
       yaw: Number(Elements.previewYaw.value),
       zoom: Number(Elements.previewZoom.value),
-      light: Number(Elements.previewLight.value),
-    })
+      light: Elements.previewLight.value,
+    }, true)
   } catch (Failure) {
-    PreviewError = T(Failure.message)
+    if (Sequence === PreviewSequence) PreviewError = T(Failure.message)
   } finally {
+    if (Sequence !== PreviewSequence) return
     PreviewBusy = false
     RenderPreview()
     SchedulePortrait()
     if (PreviewAgain) {
       PreviewAgain = false
-      RequestPreview(false)
+      QueueCamera()
     }
   }
 }
 Elements.previewRefresh.onclick = () => RequestPreview(true)
 let CameraTimer
-for (const Name of ['previewYaw', 'previewZoom'])
-  Elements[Name].addEventListener('input', () => {
-    if (!CameraTimer)
-      CameraTimer = setTimeout(() => {
-        CameraTimer = null
-        RequestPreview()
-      }, 180)
+function QueueCamera() {
+  LastCameraInput = performance.now()
+  if (CameraTimer) return
+  CameraTimer = requestAnimationFrame(() => {
+    CameraTimer = null
+    RequestPreview()
   })
+}
+for (const Name of ['previewYaw', 'previewZoom']) Elements[Name].addEventListener('input', QueueCamera)
 Elements.previewLight.addEventListener('change', () => RequestPreview())
 let Drag = null
 Elements.previewViewport.onpointerdown = (Event) => {
@@ -900,16 +918,12 @@ Elements.previewViewport.onpointerdown = (Event) => {
 Elements.previewViewport.onpointermove = (Event) => {
   if (!Drag) return
   Elements.previewYaw.value = String(((Drag.yaw + (Event.clientX - Drag.x) * 0.6 + 540) % 360) - 180)
-  if (!CameraTimer)
-    CameraTimer = setTimeout(() => {
-      CameraTimer = null
-      RequestPreview()
-    }, 120)
+  QueueCamera()
 }
 Elements.previewViewport.onpointerup = () => {
   if (Drag) {
     Drag = null
-    clearTimeout(CameraTimer)
+    cancelAnimationFrame(CameraTimer)
     CameraTimer = null
     RequestPreview()
   }
@@ -917,5 +931,105 @@ Elements.previewViewport.onpointerup = () => {
 Elements.previewViewport.onpointercancel = () => {
   Drag = null
 }
+
+function ReceivePreview(Update) {
+  if (!UIVisible) return
+  if (Update.kind === 'portrait') {
+    if (Update.portrait && State?.slots.some((Actor) => Actor.identity === Update.identity)) {
+      Portraits.set(Update.identity, Update.portrait)
+      while (Portraits.size > 80) Portraits.delete(Portraits.keys().next().value)
+      if (CurrentTab === 'roster') RenderRoster()
+    }
+    return
+  }
+  if (Update.kind === 'item') {
+    if (!ItemTarget || CurrentTab !== 'equipment') return
+    if (ItemIdentity && ItemIdentity !== Update.identity) return
+    ItemIdentity = Update.identity
+    if (Update.image) {
+      Elements.itemPreviewImage.src = Update.image
+      Elements.itemPreviewImage.hidden = false
+    }
+    Elements.itemPreviewStatus.textContent = Update.error || (Update.image ? T('Живое превью · Phantasm') : T('Загрузка модели…'))
+    return
+  }
+  if (Update.identity !== CurrentActor()?.identity || CurrentTab !== 'roster') return
+  // Подтверждение команды камеры может прийти после ready-события. Не затираем уже полученный URL.
+  if (!Update.image && PreviewFrame?.identity === Update.identity && PreviewFrame.image) return
+  PreviewFrame = Update
+  PreviewError = Update.error ? T(Update.error) : ''
+  RenderPreview()
+}
+window.studioPreview = (Payload) => {
+  try { ReceivePreview(typeof Payload === 'string' ? JSON.parse(Payload) : Payload) }
+  catch (Failure) { Message(Failure.message, true) }
+}
+function StopPreview() {
+  ++PreviewSequence
+  PreviewBusy = false
+  ItemBusy = false
+  ItemAgain = false
+  cancelAnimationFrame(CameraTimer)
+  CameraTimer = null
+  PreviewAgain = false
+  PreviewAttempt = ''
+  PreviewFrame = null
+  ItemTarget = null
+  ItemIdentity = ''
+  Elements.itemPreviewPanel.hidden = true
+  if (window.magelight) Send('previewStop', {}, true).catch(() => {})
+}
+let ItemTarget = null
+let ItemIdentity = ''
+let ItemBusy = false
+let ItemAgain = false
+async function RequestItemPreview() {
+  if (!UIVisible || CurrentTab !== 'equipment' || !ItemTarget) return
+  if (ItemBusy) { ItemAgain = true; return }
+  const Sequence = PreviewSequence
+  ItemBusy = true
+  try {
+    await Send('itemPreview', {
+      item: { plugin: ItemTarget.plugin, form: ItemTarget.form },
+      yaw: Number(Elements.itemPreviewYaw.value), zoom: Number(Elements.itemPreviewZoom.value), light: Elements.previewLight.value,
+    }, true)
+  } catch (Failure) { if (Sequence === PreviewSequence) Elements.itemPreviewStatus.textContent = T(Failure.message) }
+  finally {
+    if (Sequence !== PreviewSequence) return
+    ItemBusy = false
+    if (ItemAgain) { ItemAgain = false; RequestItemPreview() }
+  }
+}
+function OpenItemPreview(Item) {
+  StopPreview()
+  ItemTarget = Item
+  Elements.itemPreviewName.textContent = Item.name
+  Elements.itemPreviewYaw.value = '0'
+  Elements.itemPreviewZoom.value = '1'
+  Elements.itemPreviewImage.hidden = true
+  Elements.itemPreviewStatus.textContent = T('Загрузка модели…')
+  Elements.itemPreviewPanel.hidden = false
+  RequestItemPreview()
+}
+Elements.itemPreviewClose.onclick = StopPreview
+for (const Name of ['itemPreviewYaw', 'itemPreviewZoom']) {
+  Elements[Name].addEventListener('input', () => {
+    if (CameraTimer) return
+    CameraTimer = requestAnimationFrame(() => { CameraTimer = null; RequestItemPreview() })
+  })
+}
+let ItemDrag = null
+Elements.itemPreviewViewport.onpointerdown = (Event) => {
+  if (Event.button !== 0) return
+  ItemDrag = { x: Event.clientX, yaw: Number(Elements.itemPreviewYaw.value) }
+  Elements.itemPreviewViewport.setPointerCapture(Event.pointerId)
+}
+Elements.itemPreviewViewport.onpointermove = (Event) => {
+  if (!ItemDrag) return
+  Elements.itemPreviewYaw.value = String(((ItemDrag.yaw + (Event.clientX - ItemDrag.x) * .6 + 540) % 360) - 180)
+  Elements.itemPreviewYaw.dispatchEvent(new Event('input'))
+}
+Elements.itemPreviewViewport.onpointerup = () => { ItemDrag = null; RequestItemPreview() }
+Elements.itemPreviewViewport.onpointercancel = () => { ItemDrag = null }
 
 Send('state').catch((Failure) => Message(Failure.message, true))
