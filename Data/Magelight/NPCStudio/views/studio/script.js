@@ -825,6 +825,7 @@ async function TakePortrait(Actor) {
 }
 let LastCameraInput = 0
 function SchedulePortrait() {
+  if (PortraitEditing) return
   if (
     !UIVisible ||
     PortraitTimer ||
@@ -907,7 +908,7 @@ async function RequestPreview(Capture = false) {
       id: Actor.id,
       capture: Capture,
       yaw: Number(Elements.previewYaw.value), pitch: ActorPitch,
-      zoom: Number(Elements.previewZoom.value),
+      zoom: Number(Elements.previewZoom.value), panX: Number(Elements.previewViewport.dataset.panX || 0), panY: Number(Elements.previewViewport.dataset.panY || 0),
       light: Elements.previewLight.value,
     }, true)
   } catch (Failure) {
@@ -968,16 +969,17 @@ function ReceivePreview(Update) {
         ['view-drawing', 'busy'].includes(Update.error) && PortraitRetryCount++ < 3) {
       PortraitRetry = setTimeout(async () => {
         if (!PortraitBusy || !PortraitActor || !UIVisible) return
-        try { await Send('portrait', { id: PortraitActor.id, identity: PortraitActor.identity }, true) }
+        try { await Send('portrait', { id: PortraitActor.id, identity: PortraitActor.identity, ...(PortraitSaving ? PortraitSaveOptions : {}) }, true) }
         catch (Failure) { Message(T(Failure.message), true); EndPortrait() }
       }, 200)
       return
     }
-    if (Update.error) Message(T('Не удалось получить портрет') + ': ' + Update.error, true)
+    if (Update.error) { PortraitSaving = false; Message(T('Не удалось получить портрет') + ': ' + Update.error, true) }
     if (Update.portrait && State?.slots.some((Actor) => Actor.identity === Update.identity)) {
       Portraits.set(Update.identity, Update.portrait)
       while (Portraits.size > 80) Portraits.delete(Portraits.keys().next().value)
       if (CurrentTab === 'roster') RenderRoster()
+      if (PortraitSaving) PortraitDialog.close()
     }
     EndPortrait()
     return
@@ -1035,7 +1037,7 @@ async function RequestItemPreview() {
   try {
     await Send('itemPreview', {
       item: { plugin: ItemTarget.plugin, form: ItemTarget.form },
-      yaw: Number(Elements.itemPreviewYaw.value), pitch: ItemPitch, zoom: Number(Elements.itemPreviewZoom.value), light: Elements.previewLight.value,
+      yaw: Number(Elements.itemPreviewYaw.value), pitch: ItemPitch, zoom: Number(Elements.itemPreviewZoom.value), panX: Number(Elements.itemPreviewViewport.dataset.panX || 0), panY: Number(Elements.itemPreviewViewport.dataset.panY || 0), light: Elements.previewLight.value,
     }, true)
   } catch (Failure) { if (Sequence === PreviewSequence) Elements.itemPreviewStatus.textContent = T(Failure.message) }
   finally {
@@ -1154,14 +1156,16 @@ for (const Prefix of ['preview', 'itemPreview']) {
       // Смещение кадра не требует пересборки меша и работает также при паузе.
       OffsetX = Math.max(-Viewport.clientWidth / 2, Math.min(Viewport.clientWidth / 2, Pan.ox + Event.clientX - Pan.x))
       OffsetY = Math.max(-Viewport.clientHeight / 2, Math.min(Viewport.clientHeight / 2, Pan.oy + Event.clientY - Pan.y))
-      Image.style.transform = `translate(${OffsetX}px, ${OffsetY}px)`
+      Viewport.dataset.panX = OffsetX / Viewport.clientWidth
+      Viewport.dataset.panY = OffsetY / Viewport.clientHeight
+      Elements[Prefix + 'Yaw'].dispatchEvent(new window.Event('input'))
     }
   }
   Viewport.onpointerup = Event => { if (Pan) Pan = null; else Up?.(Event) }
   Viewport.onpointercancel = () => { Pan = null; Drag = null; ItemDrag = null }
   Reset.onclick = () => {
     OffsetX = OffsetY = 0
-    Image.style.transform = ''
+    Image.style.transform = ''; Viewport.dataset.panX = Viewport.dataset.panY = '0'
     Elements[Prefix + 'Yaw'].value = Prefix === 'preview' ? '0' : '180'
     Elements[Prefix + 'Zoom'].value = '1'
     if (Prefix === 'preview') ActorPitch = 0
@@ -1203,30 +1207,52 @@ const PortraitDialog = document.createElement('dialog')
 PortraitDialog.className = 'portrait-editor'
 PortraitDialog.innerHTML = '<h3>Портрет / Portrait</h3><div class="portrait-crop"><img draggable="false"></div><input type="range" min="1" max="4" step="0.01" value="1"><div class="actions"><button class="portrait-save">Сохранить / Save</button><button class="portrait-cancel">Отмена / Cancel</button></div>'
 document.body.append(PortraitDialog)
-let CropX = 0, CropY = 0, CropDrag = null, CropActor = null
-const CropImage = PortraitDialog.querySelector('img'), CropZoom = PortraitDialog.querySelector('input')
-function CropUpdate() { CropImage.style.transform = `translate(${CropX}px,${CropY}px) scale(${CropZoom.value})` }
-PortraitDialog.querySelector('.portrait-crop').onpointerdown = Event => { CropDrag = { x: Event.clientX, y: Event.clientY, ox: CropX, oy: CropY }; Event.currentTarget.setPointerCapture(Event.pointerId) }
-PortraitDialog.onpointermove = Event => { if (!CropDrag) return; CropX = CropDrag.ox + Event.clientX - CropDrag.x; CropY = CropDrag.oy + Event.clientY - CropDrag.y; CropUpdate() }
-PortraitDialog.onpointerup = () => { CropDrag = null }
-CropZoom.oninput = CropUpdate
-PortraitDialog.querySelector('.portrait-cancel').onclick = () => PortraitDialog.close()
-Retake.onclick = async () => {
-  CropActor = CurrentActor()
-  if (!CropActor) return
-  if (!Portraits.has(CropActor.identity)) await TakePortrait(CropActor)
-  const Source = Portraits.get(CropActor.identity)
-  if (!Source) return
-  CropX = CropY = 0; CropZoom.value = '1'; CropImage.src = Source; CropUpdate(); PortraitDialog.showModal()
+let CropActor = null
+// Портрет выбирается поверх живого вида; PNG создаёт нативный renderer.
+let PortraitEditing = false, PortraitSaving = false, PortraitHome = null
+let PortraitSaveOptions = null
+PortraitDialog.innerHTML = '<h3>Портрет / Portrait</h3><div class="portrait-live"></div><p>Переместите круг на лицо / Move the circle over the face</p><label>Размер круга / Circle size<input class="circle-size" type="range" min="60" max="400" value="180"></label><div class="actions"><button class="portrait-save">Сохранить / Save</button><button class="portrait-cancel">Отмена / Cancel</button></div>'
+const Circle = document.createElement('div')
+Circle.className = 'portrait-circle'
+let CircleX = 150, CircleY = 60, CircleSize = 180, CircleDrag = null
+function UpdateCircle() { Object.assign(Circle.style, { left: CircleX + 'px', top: CircleY + 'px', width: CircleSize + 'px', height: CircleSize + 'px' }) }
+Circle.onpointerdown = Event => { Event.stopPropagation(); CircleDrag = { x: Event.clientX, y: Event.clientY, ox: CircleX, oy: CircleY }; Circle.setPointerCapture(Event.pointerId) }
+Circle.onpointermove = Event => {
+  if (!CircleDrag) return
+  Event.stopPropagation()
+  CircleX = Math.max(0, Math.min(480 - CircleSize, CircleDrag.ox + Event.clientX - CircleDrag.x))
+  CircleY = Math.max(0, Math.min(640 - CircleSize, CircleDrag.oy + Event.clientY - CircleDrag.y))
+  UpdateCircle()
 }
+Circle.onpointerup = Event => { Event.stopPropagation(); CircleDrag = null }
+PortraitDialog.querySelector('.circle-size').oninput = Event => { CircleSize = Number(Event.target.value); CircleX = Math.min(CircleX, 480 - CircleSize); CircleY = Math.min(CircleY, 640 - CircleSize); UpdateCircle() }
+PortraitDialog.onpointermove = null
+PortraitDialog.onpointerup = null
+Retake.onclick = () => {
+  CropActor = CurrentActor()
+  if (!CropActor || PortraitBusy) return
+  PortraitEditing = true
+  PortraitHome = document.createComment('preview home')
+  Elements.previewViewport.before(PortraitHome)
+  PortraitDialog.querySelector('.portrait-live').append(Elements.previewViewport)
+  Elements.previewViewport.append(Circle)
+  Elements.previewZoom.value = '1'
+  Elements.previewViewport.querySelector('.camera-home').click()
+  UpdateCircle(); PortraitDialog.showModal(); RequestPreview()
+}
+PortraitDialog.onclose = () => {
+  PortraitEditing = false; PortraitSaving = false
+  if (PortraitHome) { PortraitHome.replaceWith(Elements.previewViewport); PortraitHome = null }
+  Circle.remove()
+  RequestPreview()
+}
+PortraitDialog.querySelector('.portrait-cancel').onclick = () => PortraitDialog.close()
 PortraitDialog.querySelector('.portrait-save').onclick = async () => {
+  if (PortraitSaving || !CropActor) return
+  PortraitSaving = true; PortraitBusy = true
+  PortraitActor = CropActor; PortraitRetryCount = 0
+  PortraitSaveOptions = { capture: true, editorCapture: true, zoom: Number(Elements.previewZoom.value), panX: Number(Elements.previewViewport.dataset.panX || 0), panY: Number(Elements.previewViewport.dataset.panY || 0), yaw: Number(Elements.previewYaw.value), pitch: ActorPitch, light: Elements.previewLight.value, cropX: CircleX / 480, cropY: CircleY / 640, cropSize: CircleSize / 480 }
   try {
-    const Canvas = document.createElement('canvas'); Canvas.width = Canvas.height = 256
-    const Context = Canvas.getContext('2d'), Size = 256 * Number(CropZoom.value)
-    Context.fillStyle = '#141018'; Context.fillRect(0, 0, 256, 256)
-    Context.drawImage(CropImage, (256 - Size) / 2 + CropX, (256 - Size) / 2 + CropY, Size, Size)
-    const Image = Canvas.toDataURL('image/png')
-    await Send('savePortrait', { id: CropActor.id, identity: CropActor.identity, image: Image }, true)
-    Portraits.set(CropActor.identity, Image); RenderRoster(); PortraitDialog.close()
-  } catch (Failure) { Message(Failure.message, true) }
+    await Send('portrait', { id: CropActor.id, identity: CropActor.identity, capture: true, editorCapture: true, zoom: Number(Elements.previewZoom.value), panX: Number(Elements.previewViewport.dataset.panX || 0), panY: Number(Elements.previewViewport.dataset.panY || 0), yaw: Number(Elements.previewYaw.value), pitch: ActorPitch, light: Elements.previewLight.value, cropX: CircleX / 480, cropY: CircleY / 640, cropSize: CircleSize / 480 }, true)
+  } catch (Failure) { PortraitBusy = false; PortraitSaving = false; Message(Failure.message, true) }
 }
