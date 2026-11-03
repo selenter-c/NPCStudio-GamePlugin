@@ -168,6 +168,8 @@ function Render() {
   if (!State) return
   ApplyLocale(State.settings.language || 'ru')
   ApplyTheme(State.settings.theme || 'amethyst')
+  document.querySelector('.studio').style.transform = `scale(${State.settings.scale || 1})`
+  document.querySelector('#uiScale').value = State.settings.scale || 1
   Elements.notice.textContent =
     State.error || (!State.worldLoaded ? T('Загрузите сохранение или начните новую игру.') : '')
   Elements.notice.hidden = !Elements.notice.textContent
@@ -472,6 +474,7 @@ function ReadSettings() {
     key: Number(Elements.hotkeyKey.value || 9),
     language: Elements.language.value || State.settings.language,
     theme: Elements.theme.value || State.settings.theme,
+    scale: Number(document.querySelector('#uiScale').value),
     modifiers:
       (Elements.modifierShift.checked ? 1 : 0) |
       (Elements.modifierCtrl.checked ? 2 : 0) |
@@ -1191,3 +1194,39 @@ Retake.onclick = async () => {
   await TakePortrait(Actor)
 }
 Elements.previewRefresh.after(Retake)
+const ScaleRow = document.createElement('label')
+ScaleRow.textContent = 'Масштаб интерфейса / UI scale'
+ScaleRow.innerHTML += '<input id="uiScale" type="range" min="0.6" max="1" step="0.05" value="1"><output>1.00×</output>'
+document.querySelector('.settings-card').prepend(ScaleRow)
+ScaleRow.querySelector('input').oninput = Event => { ScaleRow.querySelector('output').textContent = Number(Event.target.value).toFixed(2) + '×' }
+const PortraitDialog = document.createElement('dialog')
+PortraitDialog.className = 'portrait-editor'
+PortraitDialog.innerHTML = '<h3>Портрет / Portrait</h3><div class="portrait-crop"><img draggable="false"></div><input type="range" min="1" max="4" step="0.01" value="1"><div class="actions"><button class="portrait-save">Сохранить / Save</button><button class="portrait-cancel">Отмена / Cancel</button></div>'
+document.body.append(PortraitDialog)
+let CropX = 0, CropY = 0, CropDrag = null, CropActor = null
+const CropImage = PortraitDialog.querySelector('img'), CropZoom = PortraitDialog.querySelector('input')
+function CropUpdate() { CropImage.style.transform = `translate(${CropX}px,${CropY}px) scale(${CropZoom.value})` }
+PortraitDialog.querySelector('.portrait-crop').onpointerdown = Event => { CropDrag = { x: Event.clientX, y: Event.clientY, ox: CropX, oy: CropY }; Event.currentTarget.setPointerCapture(Event.pointerId) }
+PortraitDialog.onpointermove = Event => { if (!CropDrag) return; CropX = CropDrag.ox + Event.clientX - CropDrag.x; CropY = CropDrag.oy + Event.clientY - CropDrag.y; CropUpdate() }
+PortraitDialog.onpointerup = () => { CropDrag = null }
+CropZoom.oninput = CropUpdate
+PortraitDialog.querySelector('.portrait-cancel').onclick = () => PortraitDialog.close()
+Retake.onclick = async () => {
+  CropActor = CurrentActor()
+  if (!CropActor) return
+  if (!Portraits.has(CropActor.identity)) await TakePortrait(CropActor)
+  const Source = Portraits.get(CropActor.identity)
+  if (!Source) return
+  CropX = CropY = 0; CropZoom.value = '1'; CropImage.src = Source; CropUpdate(); PortraitDialog.showModal()
+}
+PortraitDialog.querySelector('.portrait-save').onclick = async () => {
+  try {
+    const Canvas = document.createElement('canvas'); Canvas.width = Canvas.height = 256
+    const Context = Canvas.getContext('2d'), Size = 256 * Number(CropZoom.value)
+    Context.fillStyle = '#141018'; Context.fillRect(0, 0, 256, 256)
+    Context.drawImage(CropImage, (256 - Size) / 2 + CropX, (256 - Size) / 2 + CropY, Size, Size)
+    const Image = Canvas.toDataURL('image/png')
+    await Send('savePortrait', { id: CropActor.id, identity: CropActor.identity, image: Image }, true)
+    Portraits.set(CropActor.identity, Image); RenderRoster(); PortraitDialog.close()
+  } catch (Failure) { Message(Failure.message, true) }
+}

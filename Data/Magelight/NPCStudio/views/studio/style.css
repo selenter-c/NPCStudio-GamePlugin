@@ -954,3 +954,12 @@ input[type=range] { accent-color: var(--accent); height: 5px; border-radius: 8px
 .camera-toolbar button[data-axis=Zoom][data-delta='0.15'] { grid-column: 3; grid-row: 4; margin-top: 5px; }
 .camera-toolbar label, .camera-toolbar > .combo { grid-row: 5; margin-top: 5px; }
 .camera-toolbar .combo-button { padding: 4px 6px; text-align: left; }
+.settings-card { max-width:none !important; width:100%; }
+.settings-card .form-grid { grid-template-columns:1fr; }
+.settings-card label { width:100%; }
+.studio { transform-origin:center center; }
+.portrait-editor { background:#211a29; color:#e4d9ec; border:1px solid #9476a5; border-radius:12px; padding:24px; }
+.portrait-editor::backdrop { background:#000a; }
+.portrait-crop { width:256px; height:256px; border-radius:50%; overflow:hidden; border:2px solid #c4a0e7; background:#141018; touch-action:none; }
+.portrait-crop img { width:256px; height:256px; max-width:none; object-fit:cover; pointer-events:none; }
+.portrait-editor input { width:100%; margin:20px 0; }
