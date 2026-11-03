@@ -798,6 +798,28 @@ const Portraits = new Map()
 const PortraitAttempts = new Set()
 let PortraitTimer = null
 let PortraitBusy = false
+let PortraitDeadline = null
+let PortraitRetry = null, PortraitRetryCount = 0, PortraitActor = null
+function EndPortrait() {
+  clearTimeout(PortraitDeadline)
+  clearTimeout(PortraitRetry)
+  PortraitActor = null
+  PortraitBusy = false
+  if (UIVisible && CurrentTab === 'roster') RequestPreview()
+}
+async function TakePortrait(Actor) {
+  if (PortraitBusy) return
+  PortraitBusy = true
+  PortraitActor = Actor
+  PortraitRetryCount = 0
+  PortraitAttempts.add(Actor.identity)
+  PortraitDeadline = setTimeout(() => {
+    Message(T('Не удалось получить портрет'), true)
+    EndPortrait()
+  }, 6000)
+  try { await Send('portrait', { id: Actor.id, identity: Actor.identity }, true) }
+  catch (Failure) { Message(T(Failure.message), true); EndPortrait() }
+}
 let LastCameraInput = 0
 function SchedulePortrait() {
   if (
@@ -827,15 +849,7 @@ function SchedulePortrait() {
     PortraitTimer = null
     if (!UIVisible || CurrentTab !== 'roster' || PreviewBusy || MutationBusy || Pending.size) return
     if (performance.now() - LastCameraInput < 1000) { SchedulePortrait(); return }
-    PortraitAttempts.add(Actor.identity)
-    PortraitBusy = true
-    try {
-      await Send('portrait', { id: Actor.id, identity: Actor.identity }, true)
-    } catch {
-    } finally {
-      PortraitBusy = false
-      SchedulePortrait()
-    }
+    await TakePortrait(Actor)
   }, 450)
 }
 let PreviewFrame = null
@@ -872,9 +886,9 @@ function RenderPreview() {
   }
 }
 async function RequestPreview(Capture = false) {
+  if (PortraitBusy) return
   const Actor = CurrentActor()
   if (!UIVisible || !Actor || Actor.parked || Actor.restoring || CurrentTab !== 'roster') return
-  PortraitAttempts.delete(Actor.identity)
   if (PreviewBusy) {
     PreviewAgain = true
     return
@@ -946,11 +960,23 @@ Elements.previewViewport.onpointercancel = () => {
 function ReceivePreview(Update) {
   if (!UIVisible) return
   if (Update.kind === 'portrait') {
+    if (Update.pending && !Update.portrait && !Update.error) return
+    if (PortraitBusy && PortraitActor?.identity === Update.identity &&
+        ['view-drawing', 'busy'].includes(Update.error) && PortraitRetryCount++ < 3) {
+      PortraitRetry = setTimeout(async () => {
+        if (!PortraitBusy || !PortraitActor || !UIVisible) return
+        try { await Send('portrait', { id: PortraitActor.id, identity: PortraitActor.identity }, true) }
+        catch (Failure) { Message(T(Failure.message), true); EndPortrait() }
+      }, 200)
+      return
+    }
+    if (Update.error) Message(T('Не удалось получить портрет') + ': ' + Update.error, true)
     if (Update.portrait && State?.slots.some((Actor) => Actor.identity === Update.identity)) {
       Portraits.set(Update.identity, Update.portrait)
       while (Portraits.size > 80) Portraits.delete(Portraits.keys().next().value)
       if (CurrentTab === 'roster') RenderRoster()
     }
+    EndPortrait()
     return
   }
   if (Update.kind === 'item') {
@@ -976,6 +1002,10 @@ window.studioPreview = (Payload) => {
   catch (Failure) { Message(Failure.message, true) }
 }
 function StopPreview() {
+  clearTimeout(PortraitDeadline)
+  clearTimeout(PortraitRetry)
+  PortraitActor = null
+  PortraitBusy = false
   ++PreviewSequence
   PreviewBusy = false
   ItemBusy = false
@@ -1017,7 +1047,7 @@ function OpenItemPreview(Item) {
   ItemPitch = 0
   ItemTarget = Item
   Elements.itemPreviewName.textContent = Item.name
-  Elements.itemPreviewYaw.value = '0'
+  Elements.itemPreviewYaw.value = '180'
   Elements.itemPreviewZoom.value = '1'
   Elements.itemPreviewImage.hidden = true
   Elements.itemPreviewStatus.textContent = T('Загрузка модели…')
@@ -1095,6 +1125,47 @@ for (const Prefix of ['preview', 'itemPreview']) {
     EnhanceSelect(Light)
   }
   Viewport.append(Toolbar)
+  const Reset = document.createElement('button')
+  Reset.className = 'camera-home'
+  Reset.textContent = '◎'
+  Reset.title = T('Сбросить камеру')
+  Reset.setAttribute('aria-label', Reset.title)
+  Toolbar.append(Reset)
+  const Image = Elements[Prefix + 'Image']
+  let Pan = null, OffsetX = 0, OffsetY = 0
+  const Down = Viewport.onpointerdown, Move = Viewport.onpointermove, Up = Viewport.onpointerup
+  Viewport.oncontextmenu = Event => Event.preventDefault()
+  Viewport.onpointerdown = Event => {
+    if (Event.button !== 2) { Down?.(Event); return }
+    if (Event.target.closest('.camera-toolbar')) return
+    Event.preventDefault()
+    Pan = { x: Event.clientX, y: Event.clientY, ox: OffsetX, oy: OffsetY, zoom: Number(Elements[Prefix + 'Zoom'].value), depth: Event.shiftKey }
+    Viewport.setPointerCapture(Event.pointerId)
+  }
+  Viewport.onpointermove = Event => {
+    if (!Pan) { Move?.(Event); return }
+    if (Pan.depth) {
+      Elements[Prefix + 'Zoom'].value = String(Math.max(.5, Math.min(2.5, Pan.zoom - (Event.clientY - Pan.y) * .006)))
+      Elements[Prefix + 'Zoom'].dispatchEvent(new window.Event('input'))
+    } else {
+      // Смещение кадра не требует пересборки меша и работает также при паузе.
+      OffsetX = Math.max(-Viewport.clientWidth / 2, Math.min(Viewport.clientWidth / 2, Pan.ox + Event.clientX - Pan.x))
+      OffsetY = Math.max(-Viewport.clientHeight / 2, Math.min(Viewport.clientHeight / 2, Pan.oy + Event.clientY - Pan.y))
+      Image.style.transform = `translate(${OffsetX}px, ${OffsetY}px)`
+    }
+  }
+  Viewport.onpointerup = Event => { if (Pan) Pan = null; else Up?.(Event) }
+  Viewport.onpointercancel = () => { Pan = null; Drag = null; ItemDrag = null }
+  Reset.onclick = () => {
+    OffsetX = OffsetY = 0
+    Image.style.transform = ''
+    Elements[Prefix + 'Yaw'].value = Prefix === 'preview' ? '0' : '180'
+    Elements[Prefix + 'Zoom'].value = '1'
+    if (Prefix === 'preview') ActorPitch = 0
+    else ItemPitch = 0
+    Elements[Prefix + 'Yaw'].dispatchEvent(new window.Event('input'))
+  }
+  Viewport.title = T('ЛКМ: поворот · ПКМ: смещение · Shift + ПКМ: глубина · Колесо: масштаб')
 }
 const EquipmentTabs = document.createElement('div')
 EquipmentTabs.className = 'equipment-tabs'
@@ -1117,6 +1188,6 @@ Retake.onclick = async () => {
   if (!Actor) return
   Portraits.delete(Actor.identity)
   PortraitAttempts.delete(Actor.identity)
-  await Send('portrait', { id: Actor.id, identity: Actor.identity }, true)
+  await TakePortrait(Actor)
 }
 Elements.previewRefresh.after(Retake)

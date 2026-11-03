@@ -1,4 +1,7 @@
 const English = {
+  'Сбросить камеру': 'Reset camera',
+  'Не удалось получить портрет': 'Could not capture portrait',
+  'ЛКМ: поворот · ПКМ: смещение · Shift + ПКМ: глубина · Колесо: масштаб': 'Left drag: orbit · Right drag: pan · Shift + right drag: depth · Wheel: zoom',
   СОЗДАНИЕ: 'CREATION',
   'Новый персонаж': 'New character',
   'ПОСТОЯННЫЙ РЕЗЕРВ': 'PERSISTENT RESERVE',
