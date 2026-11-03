@@ -229,7 +229,7 @@ function RenderCreation() {
   const Status = { fresh: T('новый'), used: T('использовался') }
   Options(Elements.slotSelect, [
     { value: '', label: T('Автоматически · сначала новые') },
-    ...Slots.map((Slot) => ({ value: Slot.id, label: T('Слот ') + Slot.number + ' · ' + Status[Slot.history] })),
+    ...Slots.map((Slot) => ({ value: Slot.id, label: (Slot.history === 'fresh' ? '● ' : '◐ ') + T('Слот ') + Slot.number + ' · ' + Status[Slot.history] })),
   ])
   const Slot = Slots.find((Slot) => String(Slot.id) === Elements.slotSelect.value)
   Elements.slotInfo.textContent = Slot
@@ -398,11 +398,12 @@ function RenderEquipment() {
         count: Item.kind === 'ammo' ? 100 : 1,
       })
     Info.append(Title, Source)
-    const View = document.createElement('button')
-    View.textContent = '3D'
-    View.title = T('Посмотреть предмет')
-    View.onclick = () => OpenItemPreview(Item)
-    Container.append(Info, View, Button)
+    let HoverTimer
+    Container.onpointerenter = () => { HoverTimer = setTimeout(() => OpenItemPreview(Item), 180) }
+    Container.onpointerleave = () => clearTimeout(HoverTimer)
+    Container.tabIndex = 0
+    Container.onfocus = () => OpenItemPreview(Item)
+    Container.append(Info, Button)
     return Container
   }
   Elements.equipmentInventory.replaceChildren(...Equipment.inventory.map((Item) => Row(Item, true)))
@@ -543,6 +544,14 @@ function EnhanceSelect(Select) {
             Item.setAttribute('role', 'option')
             Item.setAttribute('aria-selected', String(Option.selected))
             Item.textContent = Option.textContent
+            Item.setAttribute('aria-label', Option.textContent)
+            if (Select.id === 'slotSelect' && /^[●◐]/.test(Option.textContent)) {
+              const Dot = document.createElement('span')
+              Dot.textContent = '● '
+              Dot.style.color = Option.textContent.startsWith('●') ? '#7fc8a5' : '#d9b56d'
+              Item.textContent = Option.textContent.slice(2)
+              Item.prepend(Dot)
+            }
             Item.disabled = Option.disabled
             Item.onclick = () => {
               Select.value = Option.value
@@ -880,7 +889,7 @@ async function RequestPreview(Capture = false) {
     await Send('preview', {
       id: Actor.id,
       capture: Capture,
-      yaw: Number(Elements.previewYaw.value),
+      yaw: Number(Elements.previewYaw.value), pitch: ActorPitch,
       zoom: Number(Elements.previewZoom.value),
       light: Elements.previewLight.value,
     }, true)
@@ -909,15 +918,17 @@ function QueueCamera() {
 }
 for (const Name of ['previewYaw', 'previewZoom']) Elements[Name].addEventListener('input', QueueCamera)
 Elements.previewLight.addEventListener('change', () => RequestPreview())
+let ActorPitch = 0, ItemPitch = 0
 let Drag = null
 Elements.previewViewport.onpointerdown = (Event) => {
-  if (Event.button !== 0 || !CurrentActor()) return
-  Drag = { x: Event.clientX, yaw: Number(Elements.previewYaw.value) }
+  if (Event.target.closest('.camera-toolbar') || Event.button !== 0 || !CurrentActor()) return
+  Drag = { y: Event.clientY, pitch: ActorPitch, x: Event.clientX, yaw: Number(Elements.previewYaw.value) }
   Elements.previewViewport.setPointerCapture(Event.pointerId)
 }
 Elements.previewViewport.onpointermove = (Event) => {
   if (!Drag) return
   Elements.previewYaw.value = String(((Drag.yaw + (Event.clientX - Drag.x) * 0.6 + 540) % 360) - 180)
+  ActorPitch = Math.max(-75, Math.min(75, Drag.pitch + (Event.clientY - Drag.y) * .25))
   QueueCamera()
 }
 Elements.previewViewport.onpointerup = () => {
@@ -991,7 +1002,7 @@ async function RequestItemPreview() {
   try {
     await Send('itemPreview', {
       item: { plugin: ItemTarget.plugin, form: ItemTarget.form },
-      yaw: Number(Elements.itemPreviewYaw.value), zoom: Number(Elements.itemPreviewZoom.value), light: Elements.previewLight.value,
+      yaw: Number(Elements.itemPreviewYaw.value), pitch: ItemPitch, zoom: Number(Elements.itemPreviewZoom.value), light: Elements.previewLight.value,
     }, true)
   } catch (Failure) { if (Sequence === PreviewSequence) Elements.itemPreviewStatus.textContent = T(Failure.message) }
   finally {
@@ -1001,7 +1012,9 @@ async function RequestItemPreview() {
   }
 }
 function OpenItemPreview(Item) {
+  if (ItemTarget?.plugin === Item.plugin && ItemTarget?.form === Item.form) return
   StopPreview()
+  ItemPitch = 0
   ItemTarget = Item
   Elements.itemPreviewName.textContent = Item.name
   Elements.itemPreviewYaw.value = '0'
@@ -1020,13 +1033,14 @@ for (const Name of ['itemPreviewYaw', 'itemPreviewZoom']) {
 }
 let ItemDrag = null
 Elements.itemPreviewViewport.onpointerdown = (Event) => {
-  if (Event.button !== 0) return
-  ItemDrag = { x: Event.clientX, yaw: Number(Elements.itemPreviewYaw.value) }
+  if (Event.target.closest('.camera-toolbar') || Event.button !== 0) return
+  ItemDrag = { y: Event.clientY, pitch: ItemPitch, x: Event.clientX, yaw: Number(Elements.itemPreviewYaw.value) }
   Elements.itemPreviewViewport.setPointerCapture(Event.pointerId)
 }
 Elements.itemPreviewViewport.onpointermove = (Event) => {
   if (!ItemDrag) return
   Elements.itemPreviewYaw.value = String(((ItemDrag.yaw + (Event.clientX - ItemDrag.x) * .6 + 540) % 360) - 180)
+  ItemPitch = Math.max(-75, Math.min(75, ItemDrag.pitch + (Event.clientY - ItemDrag.y) * .25))
   Elements.itemPreviewYaw.dispatchEvent(new window.Event('input'))
 }
 Elements.itemPreviewViewport.onpointerup = () => { ItemDrag = null; RequestItemPreview() }
@@ -1045,3 +1059,42 @@ for (const [Viewport, Slider] of [
     Slider.dispatchEvent(new window.Event('input'))
   }, { passive: false })
 }
+
+// Управление камерой помещено поверх соответствующего вида.
+for (const Prefix of ['preview', 'itemPreview']) {
+  const Viewport = Elements[Prefix + 'Viewport']
+  const Toolbar = document.createElement('div')
+  Toolbar.className = 'camera-toolbar'
+  for (const [Glyph, Axis, Delta] of [['↶','Yaw',-15],['↷','Yaw',15],['↑','Pitch',-10],['↓','Pitch',10],['−','Zoom',-.15],['+','Zoom',.15]]) {
+    const Button = document.createElement('button')
+    Button.textContent = Glyph
+    Button.setAttribute('aria-label', Axis + ' ' + Delta)
+    Button.onclick = () => {
+      if (Axis === 'Pitch') {
+        if (Prefix === 'preview') ActorPitch = Math.max(-75, Math.min(75, ActorPitch + Delta))
+        else ItemPitch = Math.max(-75, Math.min(75, ItemPitch + Delta))
+      } else {
+        const Control = Elements[Prefix + Axis]
+        Control.value = String(Number(Control.value) + Delta)
+      }
+      if (Prefix === 'preview') QueueCamera()
+      else RequestItemPreview()
+    }
+    Toolbar.append(Button)
+  }
+  if (Prefix === 'preview') Toolbar.append(Elements.previewLight.closest('label'))
+  Viewport.append(Toolbar)
+}
+const EquipmentTabs = document.createElement('div')
+EquipmentTabs.className = 'equipment-tabs'
+const Cards = [...Elements.equipmentContent.children]
+for (const [Index, Caption] of [[0,'Инвентарь'],[1,'Каталог предметов']]) {
+  const Button = document.createElement('button')
+  Button.textContent = T(Caption)
+  Button.onclick = () => Cards.forEach((Card, I) => { Card.hidden = I !== Index })
+  EquipmentTabs.append(Button)
+}
+Elements.equipmentContent.before(EquipmentTabs)
+Cards[1].hidden = true
+Elements.equipmentContent.append(Elements.itemPreviewPanel)
+Elements.itemPreviewPanel.hidden = false
