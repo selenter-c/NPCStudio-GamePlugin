@@ -920,3 +920,27 @@ input, textarea { user-select: text; -webkit-user-select: text; }
 .item-preview-panel .preview-viewport { height: 430px; }
 input[type=range] { accent-color: var(--accent); height: 5px; border-radius: 8px; }
 @media(max-width: 1100px) { .roster-layout { grid-template-columns: 170px minmax(250px,1fr) 260px; } .equipment-layout { grid-template-columns: minmax(260px,1fr) 290px; } }
+
+.roster-layout { grid-template-columns: minmax(300px, 1fr) minmax(320px, 540px) 330px; }
+.roster-layout > .card:first-child { min-height: 65vh; }
+.avatar { width: 54px; height: 54px; flex-shrink: 0; overflow: hidden; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.equipment-layout { display: grid !important; grid-template-columns: minmax(300px,1fr) 420px; gap: 18px; }
+.equipment-layout[hidden] { display:none !important; }
+.equipment-layout > .item-preview-panel { position: relative; inset: auto; width: auto; min-width: 0; grid-column: 2; grid-row: 1; align-self: start; }
+.equipment-layout > .card:not(.item-preview-panel) { min-width: 0; }
+.equipment-item { cursor: pointer; }
+.equipment-item:hover, .equipment-item:focus { border-color: var(--accent); }
+.camera-toolbar { left: auto; right: 10px; top: 10px; bottom: auto; width: 98px; display: grid; grid-template-columns: repeat(3,26px); gap: 3px; padding: 5px; align-items: center; }
+.camera-toolbar button { width: 26px; height: 26px; min-width: 0; padding: 0; font-size: 15px; border-radius: 50%; }
+.camera-toolbar button[data-axis=Yaw][data-delta='-15'] { grid-column:1; grid-row:2; }
+.camera-toolbar button[data-axis=Yaw][data-delta='15'] { grid-column:3; grid-row:2; }
+.camera-toolbar button[data-axis=Pitch][data-delta='-10'] { grid-column:2; grid-row:1; }
+.camera-toolbar button[data-axis=Pitch][data-delta='10'] { grid-column:2; grid-row:3; }
+.camera-toolbar button[data-axis=Zoom] { grid-row:4; }
+.camera-toolbar label, .camera-toolbar > select { grid-column:1/-1; min-width:0; width:100%; }
+.camera-toolbar .combo-button, .camera-toolbar select { min-height:26px; padding:3px; font-size:10px; }
+
+.camera-toolbar .combo { grid-column: 1/-1; min-width: 0; width:100%; }
+.camera-toolbar .combo-button { width:100%; height:28px; border-radius:4px; font-size:10px; }
+.camera-toolbar .combo-popup { right:0; left:auto; min-width:170px; }

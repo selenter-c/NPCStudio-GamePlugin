@@ -277,6 +277,7 @@ function RenderRoster() {
       Detail.textContent = [
         Slot.female ? T('Женский') : T('Мужской'),
         Slot.dead ? T('Погиб') : Slot.parked ? T('Скрыт') : T('В мире'),
+        Slot.location || T('Неизвестная локация'),
       ].join(' · ')
       const Number = document.createElement('span')
       Number.className = 'slot-number'
@@ -398,11 +399,10 @@ function RenderEquipment() {
         count: Item.kind === 'ammo' ? 100 : 1,
       })
     Info.append(Title, Source)
-    let HoverTimer
-    Container.onpointerenter = () => { HoverTimer = setTimeout(() => OpenItemPreview(Item), 180) }
-    Container.onpointerleave = () => clearTimeout(HoverTimer)
     Container.tabIndex = 0
-    Container.onfocus = () => OpenItemPreview(Item)
+    Container.setAttribute('role', 'button')
+    Container.onclick = Event => { if (!Event.target.closest('button')) OpenItemPreview(Item) }
+    Container.onkeydown = Event => { if (Event.target === Container && ['Enter', ' '].includes(Event.key)) { Event.preventDefault(); OpenItemPreview(Item) } }
     Container.append(Info, Button)
     return Container
   }
@@ -1055,7 +1055,7 @@ for (const [Viewport, Slider] of [
   if (!Viewport || !Slider) continue
   Viewport.addEventListener('wheel', Event => {
     Event.preventDefault()
-    Slider.value = String(Math.max(.5, Math.min(2.5, Number(Slider.value) * Math.exp(-Event.deltaY * .001))))
+    Slider.value = String(Math.max(.5, Math.min(2.5, Number(Slider.value) + (Event.deltaY < 0 ? .15 : -.15))))
     Slider.dispatchEvent(new window.Event('input'))
   }, { passive: false })
 }
@@ -1068,6 +1068,8 @@ for (const Prefix of ['preview', 'itemPreview']) {
   for (const [Glyph, Axis, Delta] of [['↶','Yaw',-15],['↷','Yaw',15],['↑','Pitch',-10],['↓','Pitch',10],['−','Zoom',-.15],['+','Zoom',.15]]) {
     const Button = document.createElement('button')
     Button.textContent = Glyph
+    Button.dataset.axis = Axis
+    Button.dataset.delta = Delta
     Button.setAttribute('aria-label', Axis + ' ' + Delta)
     Button.onclick = () => {
       if (Axis === 'Pitch') {
@@ -1083,6 +1085,15 @@ for (const Prefix of ['preview', 'itemPreview']) {
     Toolbar.append(Button)
   }
   if (Prefix === 'preview') Toolbar.append(Elements.previewLight.closest('label'))
+  else {
+    const Light = document.createElement('select')
+    Light.innerHTML = Elements.previewLight.innerHTML
+    Light.value = Elements.previewLight.value
+    Light.onchange = () => { Elements.previewLight.value = Light.value; RequestItemPreview() }
+    Light.id = "itemPreviewLight"
+    Toolbar.append(Light)
+    EnhanceSelect(Light)
+  }
   Viewport.append(Toolbar)
 }
 const EquipmentTabs = document.createElement('div')
@@ -1098,3 +1109,14 @@ Elements.equipmentContent.before(EquipmentTabs)
 Cards[1].hidden = true
 Elements.equipmentContent.append(Elements.itemPreviewPanel)
 Elements.itemPreviewPanel.hidden = false
+
+const Retake = document.createElement('button')
+Retake.textContent = State?.settings?.language === 'en' ? 'Retake portrait' : 'Переснять портрет'
+Retake.onclick = async () => {
+  const Actor = CurrentActor()
+  if (!Actor) return
+  Portraits.delete(Actor.identity)
+  PortraitAttempts.delete(Actor.identity)
+  await Send('portrait', { id: Actor.id, identity: Actor.identity }, true)
+}
+Elements.previewRefresh.after(Retake)
