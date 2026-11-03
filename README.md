@@ -1,7 +1,11 @@
-# NPCStudio — игровые файлы0.6.0
+## Обновление 0.6.1
 
-Новая игра, Skyrim1.6.1170, SKSE, Address Library, Magelight UI1.5+ и Phantasm0.3.0 ccf916f72d59. Открытие Shift+8. Установить оба ZIP из NPCStudio-Build/dist: NPCStudio-0.6.0-fomod.zip и NPCStudio-Phantasm-0.3.0-local.zip. Полный SeverActions включать не нужно; в VFS должна побеждать проверенная версия Phantasm.dll.
+Установка одним архивом `NPCStudio-Build/dist/NPCStudio-0.6.1-fomod.zip`: проверенный Phantasm, его SWF и лицензии включены в локальный комплект. Отдельный мод NPCStudio-Phantasm отключить, чтобы он не перекрывал файлы. Полный SeverActions не требуется. Phantasm остаётся отдельной DLL внутри одного установленного мода; это внешний компонент, не собственная разработка NPCStudio. Чужие бинарники не публикуются в Git.
 
-UI English/Русский,4 палитры,400 постоянных слотов (200+200), раса и комплект при создании, история слотов, Tamrielic/NND случайные имена,40 наборов и свои категории, сохранение одежды при возврате NPC. В0.6.0 подключён отдельный renderer SeverActions через Phantasm API: живые виды NPC,6 lights, аватары,3D кнопка у предметов. Детали — соседний NativePlugin/docs/RENDERING_060.md. Игровая стабильность новой интеграции пока не подтверждена.
+Исправлено: строчный ID клиента Phantasm, поиск предметов через LookupForm + As (также аудит инвентаря), синхронизация цвета тела со слоем кожи головы после смены расы. Сборка и автоматические тесты не заменяют проверку в Skyrim; начать новую игру и проверить NPC/предметы/орка/возврат одежды.
 
-CLFM900+id, NPCB00+id, ACHRD00+id; CELL800/XMarker801. Всего1202 формы доE8F, ESL, slots.json schema3. Только текущая схема, миграций прежних сохранений нет. Legacy/0.1.0 не пакуется. Сохранить собственные user-*.json/categories.json/settings.json и MO2 overwrite перед заменой файлов. Сборка через Build/build.bat. Установку и игровой тест выполняет пользователь.
+Сборка: `NPCStudio-Build/build.bat`, инкрементально. Требуются Skyrim 1.6.1170, SKSE, Address Library и Magelight UI. Открытие Shift+8 (верхний ряд). Языки ru/en, четыре палитры, 200 женских и 200 мужских слотов; только текущая схема сохранения, без миграций. Пользовательские Equipment/user-*.json, categories.json и settings.json сохранить перед заменой установленной версии.
+
+Проверки: CTest state-codec/preview-contract, Mutagen 400 NPC + 400 persistent ACHR, Chrome headless с имитацией игрового API, ZIP и хеш Phantasm. Последняя стабильная пользовательская точка — checkpoint-0.4.0-user-tested; 0.6.1 помечается только build-tested до игрового теста. Редактор головы/RaceMenu и SkyrimNet ещё не подключены.
+
+Разбор рендера: NPCStudio-NativePlugin/docs/RENDERING_060.md, исправления: NPCStudio-NativePlugin/docs/RENDERING_061.md. Автоматизация не запускает MO2/Skyrim. Локальный установщик собирается из предоставленного пользователем SeverAction/97 Phantasm/00 Core; бинарник проверяется по точному SHA256, не добавляется в Git.

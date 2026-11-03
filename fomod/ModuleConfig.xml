@@ -5,6 +5,7 @@
     <file source="NPCStudio.esp" destination="NPCStudio.esp"/>
     <file source="NPCStudio_NND_DISTR.ini" destination="NPCStudio_NND_DISTR.ini"/>
     <folder source="SKSE" destination="SKSE"/>
+    <folder source="Interface" destination="Interface"/>
     <folder source="Magelight" destination="Magelight"/>
   </requiredInstallFiles>
 </config>
