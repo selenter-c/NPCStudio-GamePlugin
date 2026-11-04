@@ -808,6 +808,7 @@ function EndPortrait() {
   clearTimeout(PortraitRetry)
   PortraitActor = null
   PortraitBusy = false
+  PortraitSaving = false
   if (UIVisible && CurrentTab === 'roster') RequestPreview()
 }
 async function TakePortrait(Actor) {
@@ -1249,10 +1250,18 @@ PortraitDialog.onclose = () => {
 PortraitDialog.querySelector('.portrait-cancel').onclick = () => PortraitDialog.close()
 PortraitDialog.querySelector('.portrait-save').onclick = async () => {
   if (PortraitSaving || !CropActor) return
+  if (PreviewBusy || !PreviewFrame?.image || Elements.previewImage.hidden) {
+    Message(T('Загрузка модели…'))
+    return
+  }
   PortraitSaving = true; PortraitBusy = true
   PortraitActor = CropActor; PortraitRetryCount = 0
+  PortraitDeadline = setTimeout(() => {
+    Message(T('Не удалось получить портрет'), true)
+    EndPortrait()
+  }, 6000)
   PortraitSaveOptions = { capture: true, editorCapture: true, zoom: Number(Elements.previewZoom.value), panX: Number(Elements.previewViewport.dataset.panX || 0), panY: Number(Elements.previewViewport.dataset.panY || 0), yaw: Number(Elements.previewYaw.value), pitch: ActorPitch, light: Elements.previewLight.value, cropX: CircleX / 480, cropY: CircleY / 640, cropSize: CircleSize / 480 }
   try {
     await Send('portrait', { id: CropActor.id, identity: CropActor.identity, capture: true, editorCapture: true, zoom: Number(Elements.previewZoom.value), panX: Number(Elements.previewViewport.dataset.panX || 0), panY: Number(Elements.previewViewport.dataset.panY || 0), yaw: Number(Elements.previewYaw.value), pitch: ActorPitch, light: Elements.previewLight.value, cropX: CircleX / 480, cropY: CircleY / 640, cropSize: CircleSize / 480 }, true)
-  } catch (Failure) { PortraitBusy = false; PortraitSaving = false; Message(Failure.message, true) }
+  } catch (Failure) { EndPortrait(); Message(Failure.message, true) }
 }
