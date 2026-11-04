@@ -84,7 +84,7 @@ window.studioResponse = (Payload) => {
     }
     if (Response.state.partial) {
       const Update = Response.state.preview || Response.state.portrait || Response.state.itemPreview
-      if (Update && Request?.PreviewSequence === PreviewSequence) ReceivePreview(Update)
+      if (Update && (Update.kind === 'portrait' || Request?.PreviewSequence === PreviewSequence)) ReceivePreview(Update)
       Request?.Resolve(Response.state)
       return
     }
@@ -168,6 +168,10 @@ function Render() {
   if (!State) return
   ApplyLocale(State.settings.language || 'ru')
   ApplyTheme(State.settings.theme || 'amethyst')
+  Retake.textContent = T('Переснять портрет')
+  ScaleRow.firstChild.textContent = T('Масштаб интерфейса')
+  PortraitDialog.querySelectorAll('[data-label]').forEach(Node => { Node.textContent = T(Node.dataset.label) })
+  EquipmentTabs.querySelectorAll('button').forEach((Button, Index) => { Button.textContent = T(Index ? 'Каталог предметов' : 'Инвентарь') })
   document.querySelector('.studio').style.transform = `scale(${State.settings.scale || 1})`
   document.querySelector('#uiScale').value = State.settings.scale || 1
   Elements.notice.textContent =
@@ -206,6 +210,7 @@ function Render() {
   RenderCreation()
   RenderRoster()
   RenderPreview()
+  LoadSavedPortraits()
   SchedulePortrait()
   RenderLibrary()
   RenderEquipment()
@@ -364,6 +369,12 @@ function RenderLibrary() {
     }),
   )
 }
+function ItemIcon(Item) {
+  const Image = Icon('item-' + (Item.category || Item.kind || 'armor'))
+  Image.classList.add('item-type-icon')
+  Image.setAttribute('aria-hidden', 'true')
+  return Image
+}
 function RenderEquipment() {
   const Actor = CurrentActor()
   Elements.equipmentEmpty.hidden = !!Actor
@@ -389,7 +400,8 @@ function RenderEquipment() {
     Container.className = 'equipment-item'
     const Info = document.createElement('span')
     const Title = document.createElement('strong')
-    Title.textContent = Item.name + (Inventory ? ' × ' + Item.count + (Item.worn ? T(' · надето') : '') : '')
+    Title.append(ItemIcon(Item))
+    Title.append(document.createTextNode(Item.name + (Inventory ? ' × ' + Item.count + (Item.worn ? T(' · надето') : '') : '')))
     const Source = document.createElement('small')
     Source.textContent = Item.plugin + ' | ' + Item.form.toString(16).toUpperCase().padStart(6, '0')
     const Button = document.createElement('button')
@@ -452,9 +464,11 @@ async function LoadEquipment(Action = 'equipment', Payload = {}) {
       id: SelectedId,
       query: Elements.equipmentQuery.value.trim(),
       kind: Elements.equipmentKind.value,
+      category: Elements.equipmentCategory.value,
       ...Payload,
     })
-    if (Action !== 'equipment') InvalidatePortrait(CurrentActor()?.identity)
+    // Сохранённый пользователем портрет меняется только при явной пересъёмке.
+
     if (Action !== 'equipment')
       Message(
         Action === 'saveEquipmentPreset'
@@ -776,7 +790,6 @@ window.magelight?.on('__uimode', (Value) => {
   if (String(Value) === '1') {
     PreviewAttempt = ''
     PreviewFrame = null
-    Portraits.clear()
     PortraitAttempts.clear()
     PickTip()
     Send('state').catch((Failure) => Message(Failure.message, true))
@@ -799,6 +812,29 @@ function InvalidatePortrait(Identity) {
 }
 const Portraits = new Map()
 const PortraitAttempts = new Set()
+const PortraitCacheChecked = new Set()
+let PortraitCacheBusy = false
+async function LoadSavedPortraits() {
+  if (PortraitCacheBusy || !UIVisible || !State) return
+  const Missing = State.slots.filter(Actor => !Portraits.has(Actor.identity) && !PortraitCacheChecked.has(Actor.identity)).slice(0, 24)
+  if (!Missing.length) return
+  PortraitCacheBusy = true
+  try {
+    const Result = await Send('portraitCache', { identities: Missing.map(Actor => Actor.identity) }, true)
+    for (const Actor of Missing) PortraitCacheChecked.add(Actor.identity)
+    for (const [Identity, Image] of Object.entries(Result.portraits || {})) {
+      if (State.slots.some(Actor => Actor.identity === Identity)) Portraits.set(Identity, Image)
+    }
+    RenderRoster()
+  } catch (Failure) {
+    for (const Actor of Missing) PortraitCacheChecked.add(Actor.identity)
+    console.warn('Portrait cache:', Failure.message)
+  } finally {
+    PortraitCacheBusy = false
+    LoadSavedPortraits()
+    SchedulePortrait()
+  }
+}
 let PortraitTimer = null
 let PortraitBusy = false
 let PortraitDeadline = null
@@ -826,7 +862,7 @@ async function TakePortrait(Actor) {
 }
 let LastCameraInput = 0
 function SchedulePortrait() {
-  if (PortraitEditing) return
+  if (PortraitEditing || PortraitCacheBusy) return
   if (
     !UIVisible ||
     PortraitTimer ||
@@ -846,6 +882,7 @@ function SchedulePortrait() {
         !Slot.parked &&
         !Slot.restoring &&
         !Slot.dead &&
+        PortraitCacheChecked.has(Slot.identity) &&
         !Portraits.has(Slot.identity) &&
         !PortraitAttempts.has(Slot.identity),
     )
@@ -898,7 +935,6 @@ async function RequestPreview(Capture = false) {
     PreviewAgain = true
     return
   }
-  if (Capture) Portraits.delete(Actor.identity)
   const Sequence = PreviewSequence
   PreviewAttempt = Actor.identity
   PreviewBusy = true
@@ -978,7 +1014,7 @@ function ReceivePreview(Update) {
     if (Update.error) { PortraitSaving = false; Message(T('Не удалось получить портрет') + ': ' + Update.error, true) }
     if (Update.portrait && State?.slots.some((Actor) => Actor.identity === Update.identity)) {
       Portraits.set(Update.identity, Update.portrait)
-      while (Portraits.size > 80) Portraits.delete(Portraits.keys().next().value)
+      while (Portraits.size > 400) Portraits.delete(Portraits.keys().next().value)
       if (CurrentTab === 'roster') RenderRoster()
       if (PortraitSaving) PortraitDialog.close()
     }
@@ -1008,6 +1044,9 @@ window.studioPreview = (Payload) => {
   catch (Failure) { Message(Failure.message, true) }
 }
 function StopPreview() {
+  if (PortraitActor) PortraitAttempts.delete(PortraitActor.identity)
+  clearTimeout(PortraitTimer)
+  PortraitTimer = null
   clearTimeout(PortraitDeadline)
   clearTimeout(PortraitRetry)
   PortraitActor = null
@@ -1190,29 +1229,21 @@ Elements.equipmentContent.append(Elements.itemPreviewPanel)
 Elements.itemPreviewPanel.hidden = false
 
 const Retake = document.createElement('button')
-Retake.textContent = State?.settings?.language === 'en' ? 'Retake portrait' : 'Переснять портрет'
-Retake.onclick = async () => {
-  const Actor = CurrentActor()
-  if (!Actor) return
-  Portraits.delete(Actor.identity)
-  PortraitAttempts.delete(Actor.identity)
-  await TakePortrait(Actor)
-}
+Retake.textContent = T('Переснять портрет')
 Elements.previewRefresh.after(Retake)
 const ScaleRow = document.createElement('label')
-ScaleRow.textContent = 'Масштаб интерфейса / UI scale'
+ScaleRow.textContent = T('Масштаб интерфейса')
 ScaleRow.innerHTML += '<input id="uiScale" type="range" min="0.6" max="1" step="0.05" value="1"><output>1.00×</output>'
 document.querySelector('.settings-card').prepend(ScaleRow)
 ScaleRow.querySelector('input').oninput = Event => { ScaleRow.querySelector('output').textContent = Number(Event.target.value).toFixed(2) + '×' }
 const PortraitDialog = document.createElement('dialog')
 PortraitDialog.className = 'portrait-editor'
-PortraitDialog.innerHTML = '<h3>Портрет / Portrait</h3><div class="portrait-crop"><img draggable="false"></div><input type="range" min="1" max="4" step="0.01" value="1"><div class="actions"><button class="portrait-save">Сохранить / Save</button><button class="portrait-cancel">Отмена / Cancel</button></div>'
 document.body.append(PortraitDialog)
 let CropActor = null
 // Портрет выбирается поверх живого вида; PNG создаёт нативный renderer.
 let PortraitEditing = false, PortraitSaving = false, PortraitHome = null
 let PortraitSaveOptions = null
-PortraitDialog.innerHTML = '<h3>Портрет / Portrait</h3><div class="portrait-live"></div><p>Переместите круг на лицо / Move the circle over the face</p><label>Размер круга / Circle size<input class="circle-size" type="range" min="60" max="400" value="180"></label><div class="actions"><button class="portrait-save">Сохранить / Save</button><button class="portrait-cancel">Отмена / Cancel</button></div>'
+PortraitDialog.innerHTML = '<h3 data-label="Портрет"></h3><div class="portrait-live"></div><p><span data-label="Переместите круг на лицо"></span></p><label><span data-label="Размер круга"></span><input class="circle-size" type="range" min="60" max="400" value="180"></label><div class="actions"><button class="portrait-save"><span data-label="Сохранить"></span></button><button class="portrait-cancel"><span data-label="Отмена"></span></button></div>'
 const Circle = document.createElement('div')
 Circle.className = 'portrait-circle'
 let CircleX = 150, CircleY = 60, CircleSize = 180, CircleDrag = null
@@ -1227,8 +1258,6 @@ Circle.onpointermove = Event => {
 }
 Circle.onpointerup = Event => { Event.stopPropagation(); CircleDrag = null }
 PortraitDialog.querySelector('.circle-size').oninput = Event => { CircleSize = Number(Event.target.value); CircleX = Math.min(CircleX, 480 - CircleSize); CircleY = Math.min(CircleY, 640 - CircleSize); UpdateCircle() }
-PortraitDialog.onpointermove = null
-PortraitDialog.onpointerup = null
 Retake.onclick = () => {
   CropActor = CurrentActor()
   if (!CropActor || PortraitBusy) return
@@ -1265,3 +1294,6 @@ PortraitDialog.querySelector('.portrait-save').onclick = async () => {
     await Send('portrait', { id: CropActor.id, identity: CropActor.identity, capture: true, editorCapture: true, zoom: Number(Elements.previewZoom.value), panX: Number(Elements.previewViewport.dataset.panX || 0), panY: Number(Elements.previewViewport.dataset.panY || 0), yaw: Number(Elements.previewYaw.value), pitch: ActorPitch, light: Elements.previewLight.value, cropX: CircleX / 480, cropY: CircleY / 640, cropSize: CircleSize / 480 }, true)
   } catch (Failure) { EndPortrait(); Message(Failure.message, true) }
 }
+
+Elements.equipmentCategory.onchange = () => LoadEquipment()
+Elements.equipmentKind.addEventListener('change', () => { Elements.equipmentCategory.value = ''; RefreshCombo(Elements.equipmentCategory); LoadEquipment() })

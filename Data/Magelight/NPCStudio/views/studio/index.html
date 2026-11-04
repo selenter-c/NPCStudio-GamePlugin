@@ -8,6 +8,16 @@
   </head>
   <body>
     <svg class="svg-sprite" aria-hidden="true">
+      <symbol id="i-item-armor" viewBox="0 0 24 24"><path d="M5 3 2 8l4 3v10h12V11l4-3-3-5-4 3H9Z" /></symbol>
+      <symbol id="i-item-body" viewBox="0 0 24 24"><path d="M5 3 2 8l4 3v10h12V11l4-3-3-5-4 3H9Z" /></symbol>
+      <symbol id="i-item-head" viewBox="0 0 24 24"><path d="M4 13V9a8 8 0 0 1 16 0v4l-4-1v8H8v-8Z" /></symbol>
+      <symbol id="i-item-hands" viewBox="0 0 24 24"><path d="M8 21 3 13l2-2 3 3V4h3v7-9h3v9-7h3v9-5h3v9l-4 4Z" /></symbol>
+      <symbol id="i-item-feet" viewBox="0 0 24 24"><path d="M8 3h8v10l5 4v4H3v-5l5-3Z" /></symbol>
+      <symbol id="i-item-shield" viewBox="0 0 24 24"><path d="M12 2 3 6v6c0 5 9 10 9 10s9-5 9-10V6Z" /></symbol>
+      <symbol id="i-item-jewelry" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4a5 5 0 1 0 0 10 5 5 0 0 0 0-10Z" /></symbol>
+      <symbol id="i-item-other" viewBox="0 0 24 24"><path d="m12 2 10 10-10 10L2 12Z" /></symbol>
+      <symbol id="i-item-weapon" viewBox="0 0 24 24"><path d="m14 3 7-1-1 7-9 9-5-5ZM3 21l5-5M4 11l9 9" /></symbol>
+      <symbol id="i-item-ammo" viewBox="0 0 24 24"><path d="M4 21 20 5m-7 0h7v7M3 15l6 6" /></symbol>
       <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
       <symbol id="i-users" viewBox="0 0 24 24">
         <path
@@ -47,7 +57,7 @@
         <div class="brand">
           <svg class="brand-mark icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 34 11v18L20 37 6 29V11ZM6 11l14 8 14-8M20 19v18M13 7l14 8"/><circle cx="20" cy="11" r="3"/></svg>
           <div>
-            <h1>NPC STUDIO <small>0.6.9</small></h1>
+            <h1>NPC STUDIO <small>0.7.0</small></h1>
             <span class="eyebrow">ПЕРСОНАЖИ, КОТОРЫЕ ОСТАНУТСЯ В ВАШЕМ МИРЕ</span>
           </div>
         </div>
@@ -269,11 +279,17 @@
                 <h3>Каталог предметов</h3>
               </div>
               <form id="equipmentSearchForm" class="catalog-search">
-                <select id="equipmentKind" aria-label="Тип">
+                <select id="equipmentKind" aria-label="Тип"><option value="all">Все</option>
                   <option value="armor">Одежда и броня</option>
                   <option value="weapon">Оружие</option>
-                  <option value="ammo">Стрелы и болты</option></select
-                ><input
+                  <option value="ammo">Стрелы и болты</option></select>
+                <select id="equipmentCategory" aria-label="Категория предмета">
+                  <option value="">Все типы</option><option value="head">Голова</option>
+                  <option value="body">Тело</option><option value="hands">Руки</option>
+                  <option value="feet">Ноги</option><option value="shield">Щиты</option>
+                  <option value="jewelry">Украшения</option><option value="other">Прочая броня</option>
+                  <option value="weapon">Оружие</option><option value="ammo">Стрелы и болты</option>
+                </select><input
                   id="equipmentQuery"
                   placeholder="Название или плагин"
                   maxlength="80"

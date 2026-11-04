@@ -410,3 +410,11 @@ Object.assign(RussianMessages, {
   'Portrait queue is full': 'Очередь портретов заполнена',
   'Unsupported preview item': 'Этот предмет не поддерживает 3D-превью',
 })
+
+Object.assign(English, {
+  'Переснять портрет': 'Retake portrait', 'Портрет': 'Portrait',
+  'Переместите круг на лицо': 'Move the circle over the face', 'Размер круга': 'Circle size',
+  'Сохранить': 'Save', 'Отмена': 'Cancel', 'Масштаб интерфейса': 'UI scale',
+  'Все': 'All', 'Все типы': 'All types', 'Голова': 'Head', 'Тело': 'Body',
+  'Руки': 'Hands', 'Ноги': 'Feet', 'Щиты': 'Shields', 'Украшения': 'Jewelry', 'Прочая броня': 'Other armor',
+})
