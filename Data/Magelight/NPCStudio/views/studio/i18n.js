@@ -418,3 +418,5 @@ Object.assign(English, {
   'Все': 'All', 'Все типы': 'All types', 'Голова': 'Head', 'Тело': 'Body',
   'Руки': 'Hands', 'Ноги': 'Feet', 'Щиты': 'Shields', 'Украшения': 'Jewelry', 'Прочая броня': 'Other armor',
 })
+
+Object.assign(English, { 'Удалить выбранный набор':'Delete selected outfit', 'Удалить пустую категорию':'Delete empty category', 'Можно удалить только пользовательский набор':'Only custom outfits can be deleted', 'Основную категорию удалить нельзя':'The default category cannot be deleted', 'Сначала удалите наборы из этой категории':'Delete the outfits in this category first', 'Пользовательская категория не найдена':'Custom category not found', 'Не удалось удалить набор':'Could not delete outfit', 'Вес':'Weight', 'Стоимость':'Value', 'Базовая защита':'Base armor rating', 'Базовый урон':'Base damage', 'Количество':'Quantity', 'Плагин':'Plugin' })

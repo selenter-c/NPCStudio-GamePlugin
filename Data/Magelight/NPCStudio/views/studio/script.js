@@ -173,7 +173,7 @@ function Render() {
   PortraitDialog.querySelectorAll('[data-label]').forEach(Node => { Node.textContent = T(Node.dataset.label) })
   EquipmentTabs.querySelectorAll('button').forEach((Button, Index) => { Button.textContent = T(Index ? 'Каталог предметов' : 'Инвентарь') })
   document.querySelector('.studio').style.transform = `scale(${State.settings.scale || 1})`
-  document.querySelector('#uiScale').value = State.settings.scale || 1
+  if (!SettingsDirty) { document.querySelector('#uiScale').value = State.settings.scale || 1; document.querySelector('#uiScale').dispatchEvent(new Event('change')) }
   Elements.notice.textContent =
     State.error || (!State.worldLoaded ? T('Загрузите сохранение или начните новую игру.') : '')
   Elements.notice.hidden = !Elements.notice.textContent
@@ -1092,6 +1092,16 @@ function OpenItemPreview(Item) {
   ItemPitch = 0
   ItemTarget = Item
   Elements.itemPreviewName.textContent = Item.name
+  let Details = Elements.itemPreviewPanel.querySelector('.item-details')
+  if (!Details) { Details = document.createElement('dl'); Details.className = 'item-details'; Elements.itemPreviewPanel.append(Details) }
+  Details.replaceChildren()
+  for (const [Key, Label] of [['plugin','Плагин'],['form','Form ID'],['editorId','Editor ID'],['weight','Вес'],['value','Стоимость'],['armorRating','Базовая защита'],['damage','Базовый урон'],['count','Количество']]) {
+    if (Item[Key] === undefined || Item[Key] === '') continue
+    const Name = document.createElement('dt'), Value = document.createElement('dd')
+    Name.textContent = T(Label)
+    Value.textContent = Key === 'form' ? Item[Key].toString(16).toUpperCase().padStart(6, '0') : String(Item[Key])
+    Details.append(Name, Value)
+  }
   Elements.itemPreviewYaw.value = '180'
   Elements.itemPreviewZoom.value = '1'
   Elements.itemPreviewImage.hidden = true
@@ -1235,7 +1245,7 @@ const ScaleRow = document.createElement('label')
 ScaleRow.textContent = T('Масштаб интерфейса')
 ScaleRow.innerHTML += '<input id="uiScale" type="range" min="0.6" max="1" step="0.05" value="1"><output>1.00×</output>'
 document.querySelector('.settings-card').prepend(ScaleRow)
-ScaleRow.querySelector('input').oninput = Event => { ScaleRow.querySelector('output').textContent = Number(Event.target.value).toFixed(2) + '×' }
+ScaleRow.querySelector('input').oninput = Event => { SettingsDirty = true; ScaleRow.querySelector('output').textContent = Number(Event.target.value).toFixed(2) + '×' }
 const PortraitDialog = document.createElement('dialog')
 PortraitDialog.className = 'portrait-editor'
 document.body.append(PortraitDialog)
@@ -1297,3 +1307,28 @@ PortraitDialog.querySelector('.portrait-save').onclick = async () => {
 
 Elements.equipmentCategory.onchange = () => LoadEquipment()
 Elements.equipmentKind.addEventListener('change', () => { Elements.equipmentCategory.value = ''; RefreshCombo(Elements.equipmentCategory); LoadEquipment() })
+
+for (const [Anchor, Action, Label] of [[Elements.equipmentPreset, 'deletePreset', 'Удалить выбранный набор'], [Elements.presetCategory, 'deleteCategory', 'Удалить пустую категорию']]) {
+  const Button = document.createElement('button')
+  Button.className = 'danger'
+  const Text = document.createTextNode(Label)
+  Button.append(Icon('trash'), Text)
+  StaticText.push([Text, Label])
+  Anchor.closest('.combo').after(Button)
+  Button.onclick = async () => {
+    if (!Anchor.value || MutationBusy) return
+    await Act(Action, { key: Anchor.value })
+  }
+}
+
+for (const Input of [document.querySelector('#uiScale'), PortraitDialog.querySelector('.circle-size')]) {
+  const Track = document.createElement('div')
+  Track.className = 'smooth-range'
+  Input.before(Track); Track.append(Input)
+  const Thumb = document.createElement('span')
+  Thumb.className = 'smooth-thumb'; Track.append(Thumb)
+  const Update = () => { Thumb.style.left = (100 * (Number(Input.value) - Number(Input.min)) / (Number(Input.max) - Number(Input.min))) + '%' }
+  Input.addEventListener('input', Update)
+  Input.addEventListener('change', Update)
+  Update()
+}
