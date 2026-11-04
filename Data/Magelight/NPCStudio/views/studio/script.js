@@ -820,7 +820,7 @@ async function TakePortrait(Actor) {
   PortraitDeadline = setTimeout(() => {
     Message(T('Не удалось получить портрет'), true)
     EndPortrait()
-  }, 6000)
+  }, 12000)
   try { await Send('portrait', { id: Actor.id, identity: Actor.identity }, true) }
   catch (Failure) { Message(T(Failure.message), true); EndPortrait() }
 }
@@ -1259,7 +1259,7 @@ PortraitDialog.querySelector('.portrait-save').onclick = async () => {
   PortraitDeadline = setTimeout(() => {
     Message(T('Не удалось получить портрет'), true)
     EndPortrait()
-  }, 6000)
+  }, 12000)
   PortraitSaveOptions = { capture: true, editorCapture: true, zoom: Number(Elements.previewZoom.value), panX: Number(Elements.previewViewport.dataset.panX || 0), panY: Number(Elements.previewViewport.dataset.panY || 0), yaw: Number(Elements.previewYaw.value), pitch: ActorPitch, light: Elements.previewLight.value, cropX: CircleX / 480, cropY: CircleY / 640, cropSize: CircleSize / 480 }
   try {
     await Send('portrait', { id: CropActor.id, identity: CropActor.identity, capture: true, editorCapture: true, zoom: Number(Elements.previewZoom.value), panX: Number(Elements.previewViewport.dataset.panX || 0), panY: Number(Elements.previewViewport.dataset.panY || 0), yaw: Number(Elements.previewYaw.value), pitch: ActorPitch, light: Elements.previewLight.value, cropX: CircleX / 480, cropY: CircleY / 640, cropSize: CircleSize / 480 }, true)
