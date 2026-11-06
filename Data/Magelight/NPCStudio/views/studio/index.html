@@ -57,7 +57,7 @@
         <div class="brand">
           <svg class="brand-mark icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 34 11v18L20 37 6 29V11ZM6 11l14 8 14-8M20 19v18M13 7l14 8"/><circle cx="20" cy="11" r="3"/></svg>
           <div>
-            <h1>NPC STUDIO <small>0.7.3</small></h1>
+            <h1>NPC STUDIO <small>0.8.0</small></h1>
             <span class="eyebrow">ПЕРСОНАЖИ, КОТОРЫЕ ОСТАНУТСЯ В ВАШЕМ МИРЕ</span>
           </div>
         </div>
@@ -78,7 +78,7 @@
           <svg class="icon" aria-hidden="true"><use href="#i-layers" /></svg> Библиотека наборов
         </button>
         <div class="nav-divider"></div>
-        <button disabled title="В разработке">
+        <button data-tab="appearance">
           <svg class="icon" aria-hidden="true"><use href="#i-person" /></svg> Внешность</button
         ><button disabled title="В разработке">
           <svg class="icon" aria-hidden="true"><use href="#i-layers" /></svg> Биография</button
@@ -334,6 +334,26 @@
               </div>
               <label>Название<input id="categoryName" maxlength="80" placeholder="Например, мой отряд" /></label
               ><button id="addCategory">Создать категорию</button>
+            </div>
+          </div>
+        </section>
+        <section id="appearancePage" class="page" hidden>
+          <div class="card appearance-card">
+            <div class="card-heading">
+              <svg class="icon" aria-hidden="true"><use href="#i-person" /></svg>
+              <h3 id="appearanceName"></h3>
+              <button id="appearanceRefresh" class="icon-button" title="Проверить">
+                <svg class="icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+              </button>
+            </div>
+            <p id="appearanceStatus" class="muted" role="status"></p>
+            <div id="appearanceEditor" hidden>
+              <label>Причёска<select id="hairStyle"></select></label>
+              <p id="appearanceHairHint" class="muted small" hidden>Снимите головной убор и обновите редактор.</p>
+              <label>Цвет волос<select id="hairColor"></select></label>
+              <div id="hairSwatches" class="hair-swatches"></div>
+              <div class="actions"><button id="applyAppearance" class="primary">Применить внешность</button></div>
+              <p class="muted small">Изменения записываются при сохранении игры.</p>
             </div>
           </div>
         </section>

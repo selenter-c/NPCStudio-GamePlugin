@@ -517,6 +517,14 @@ progress {
   gap: 10px;
 }
 .replace-loadout label { margin: 0; }
+.appearance-card { max-width: 660px; }
+.hair-swatches { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 18px; }
+.hair-swatch { width: 30px; height: 30px; border-radius: 50%; padding: 0; background: var(--swatch); }
+.hair-swatch:hover:not(:disabled), .hair-swatch[aria-pressed=true] {
+  background: var(--swatch);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .equipment-item .item-actions {
   display: flex;
   flex: 0 0 auto;

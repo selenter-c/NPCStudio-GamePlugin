@@ -7,6 +7,10 @@ let Equipment = null
 let EquipmentOwnerId = null
 let EquipmentBusy = false
 let ItemToRemove = null
+let AppearanceTarget = null
+let Appearance = null
+let AppearanceBusy = false
+let AppearanceRevision = 0
 let MutationBusy = false
 let DeletionTarget = null
 let SettingsDirty = false
@@ -17,6 +21,7 @@ const Pages = {
   roster: [T('ПОСТОЯННЫЙ РЕЗЕРВ'), T('Мои персонажи')],
   equipment: [T('ПРЕДМЕТЫ И ЭКИПИРОВКА'), T('Снаряжение')],
   presets: [T('ГОТОВЫЕ И СВОИ КОМПЛЕКТЫ'), T('Библиотека наборов')],
+  appearance: [T('ВНЕШНОСТЬ ПЕРСОНАЖА'), T('Внешность')],
   settings: [T('ПАРАМЕТРЫ СТУДИИ'), T('Настройки')],
 }
 const Icon = (Name) => {
@@ -215,6 +220,7 @@ function Render() {
   SchedulePortrait()
   RenderLibrary()
   RenderEquipment()
+  RenderAppearance()
   if (!SettingsDirty) {
     Options(Elements.hotkeyKey, KeyOptions, State.settings.key)
     Elements.language.value = State.settings.language || 'ru'
@@ -461,12 +467,15 @@ function RenderEquipment() {
 }
 function SelectActor(Id) {
   StopPreview()
+  AppearanceTarget = null
+  ClearAppearance()
   ItemToRemove = null
   SelectedId = Id === '' ? null : Number(Id)
   DeletionTarget = null
   Equipment = null
   Render()
   if (CurrentTab === 'equipment' && SelectedId !== null) LoadEquipment()
+  if (CurrentTab === 'appearance') LoadAppearance()
 }
 function Tab(Name) {
   StopPreview()
@@ -475,7 +484,88 @@ function Tab(Name) {
   CloseCombo()
   Render()
   if (Name === 'equipment' && SelectedId !== null) LoadEquipment()
+  if (Name === 'appearance') LoadAppearance()
 }
+function ClearAppearance() {
+  ++AppearanceRevision
+  Appearance = null
+  AppearanceBusy = false
+}
+function AppearanceAddress() {
+  if (AppearanceTarget?.reference) return { reference: AppearanceTarget.reference }
+  const Actor = CurrentActor()
+  return Actor ? { id: Actor.id, identity: Actor.identity } : null
+}
+function RenderAppearance() {
+  if (CurrentTab !== 'appearance') return
+  const Address = AppearanceAddress()
+  Elements.appearanceName.textContent = Appearance?.name || CurrentActor()?.name || T('Внешность')
+  Elements.appearanceEditor.hidden = !Appearance?.available
+  Elements.appearanceRefresh.disabled = !Address || AppearanceBusy
+  Elements.appearanceStatus.textContent = T(!Address
+    ? 'Выберите своего NPC в списке или откройте меню, глядя на NPC.'
+    : AppearanceBusy
+      ? 'Обновление внешности…'
+      : Appearance?.available
+        ? ''
+        : 'Внешность недоступна. Нужен загруженный взрослый NPC вне боя. Для NPC из мира требуется уникальный персонаж.')
+  if (!Appearance?.available) return
+  Elements.appearanceHairHint.hidden = Appearance.hairAvailable
+  const HairRows = Appearance.hairs.filter(Hair => Hair.id !== Appearance.hair)
+  Options(Elements.hairStyle, [
+    { value: Appearance.hair, label: Appearance.hairName },
+    ...HairRows.map(Hair => ({ value: Hair.id, label: Hair.name })),
+  ])
+  Options(Elements.hairColor, Appearance.colors.map(Color => ({ value: Color.id, label: Color.name })))
+  const Changed = Number(Elements.hairStyle.value) !== Appearance.hair ||
+    Number(Elements.hairColor.value) !== Appearance.color
+  Elements.applyAppearance.disabled = AppearanceBusy || !Appearance.hairAvailable || !Changed
+  Elements.hairSwatches.replaceChildren(...Appearance.colors.map(Color => {
+    const Button = document.createElement('button')
+    Button.className = 'hair-swatch'
+    Button.title = Color.name
+    Button.setAttribute('aria-label', Color.name)
+    Button.setAttribute('aria-pressed', String(Number(Elements.hairColor.value) === Color.id))
+    Button.style.setProperty('--swatch', Color.rgb)
+    Button.onclick = () => {
+      Elements.hairColor.value = Color.id
+      RenderAppearance()
+    }
+    return Button
+  }))
+}
+async function LoadAppearance(Apply = false) {
+  const Address = AppearanceAddress()
+  if (!Address || AppearanceBusy) return
+  const Revision = ++AppearanceRevision
+  AppearanceBusy = true
+  RenderAppearance()
+  try {
+    const Result = await Send(Apply ? 'applyAppearance' : 'appearance', {
+      ...Address,
+      ...(Apply ? { hair: Number(Elements.hairStyle.value), color: Number(Elements.hairColor.value) } : {}),
+    }, true)
+    if (Revision !== AppearanceRevision) return
+    Appearance = Result.appearance
+    Elements.hairStyle.value = ''
+    Elements.hairColor.value = ''
+    RenderAppearance()
+    Elements.hairStyle.value = String(Appearance.hair)
+    Elements.hairColor.value = String(Appearance.color)
+    if (Apply) Message(T('Изменения применены. Сохраните игру.'))
+  } catch (Failure) {
+    if (Revision === AppearanceRevision) Message(Failure.message, true)
+  } finally {
+    if (Revision === AppearanceRevision) {
+      AppearanceBusy = false
+      RenderAppearance()
+    }
+  }
+}
+Elements.hairStyle.onchange = RenderAppearance
+Elements.hairColor.onchange = RenderAppearance
+Elements.appearanceRefresh.onclick = () => LoadAppearance()
+Elements.applyAppearance.onclick = () => LoadAppearance(true)
 async function Act(Action, Payload = {}) {
   if (MutationBusy) return
   MutationBusy = true
@@ -814,6 +904,7 @@ window.magelight?.on('__uimode', (Value) => {
   if (UIVisible) MenuOpenedAt = performance.now()
   if (!UIVisible) {
     ItemToRemove = null
+    ClearAppearance()
     clearTimeout(PortraitTimer)
     PortraitTimer = null
     cancelAnimationFrame(CameraTimer)
@@ -832,7 +923,18 @@ window.magelight?.on('__uimode', (Value) => {
     PreviewFrame = null
     PortraitAttempts.clear()
     PickTip()
-    Send('state').catch((Failure) => Message(Failure.message, true))
+    const OpenedAt = MenuOpenedAt
+    Send('openState').then((Opened) => {
+      if (!UIVisible || MenuOpenedAt !== OpenedAt) return
+      const WasExternal = !!AppearanceTarget?.reference
+      AppearanceTarget = Opened.appearanceTarget || null
+      if (AppearanceTarget) {
+        if (AppearanceTarget.id !== undefined) SelectActor(AppearanceTarget.id)
+        else SelectedId = null
+        Tab('appearance')
+      } else if (WasExternal && CurrentTab === 'appearance') Tab('create')
+      else if (CurrentTab === 'appearance') LoadAppearance()
+    }).catch((Failure) => Message(Failure.message, true))
   }
 })
 setInterval(() => {
