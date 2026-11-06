@@ -167,7 +167,7 @@ const KeyOptions = [
 function Render() {
   if (!State) return
   ApplyLocale(State.settings.language || 'ru')
-  ApplyTheme(State.settings.theme || 'amethyst')
+  ApplyTheme(State.settings.theme || 'ember')
   Retake.textContent = T('Переснять портрет')
   ScaleRow.firstChild.textContent = T('Масштаб интерфейса')
   PortraitDialog.querySelectorAll('[data-label]').forEach(Node => { Node.textContent = T(Node.dataset.label) })
@@ -217,7 +217,7 @@ function Render() {
   if (!SettingsDirty) {
     Options(Elements.hotkeyKey, KeyOptions, State.settings.key)
     Elements.language.value = State.settings.language || 'ru'
-    Elements.theme.value = State.settings.theme || 'amethyst'
+    Elements.theme.value = State.settings.theme || 'ember'
     RefreshCombo(Elements.language)
     RefreshCombo(Elements.theme)
     Elements.modifierShift.checked = !!(State.settings.modifiers & 1)
@@ -347,7 +347,7 @@ function RenderLibrary() {
       T(Selected.category) + ' · ' + Selected.items.length + T(' предметов. Повторное применение не накапливает копии.')
     : T('В этой категории пока нет наборов.')
   Elements.applyPreset.disabled = !CanChange() || !Selected?.available
-  Elements.savePreset.disabled = !CanChange()
+  Elements.savePreset.disabled = false
   Elements.presetCards.replaceChildren(
     ...Presets.map((Preset) => {
       const Button = document.createElement('button')
@@ -471,7 +471,7 @@ async function LoadEquipment(Action = 'equipment', Payload = {}) {
 
     if (Action !== 'equipment')
       Message(
-        Action === 'saveEquipmentPreset'
+        Action === 'editPreset'
           ? T('Набор сохранён в библиотеке.')
           : T('Снаряжение обновлено. Сохраните игру.'),
       )
@@ -660,11 +660,6 @@ Elements.equipmentSearchForm.onsubmit = (Event) => {
   LoadEquipment()
 }
 Elements.applyPreset.onclick = () => LoadEquipment('applyEquipmentPreset', { preset: Elements.equipmentPreset.value })
-Elements.savePreset.onclick = () => {
-  const Name = Elements.presetName.value.trim()
-  if (!Name) return Message(T('Введите название набора'), true)
-  LoadEquipment('saveEquipmentPreset', { name: Name, category: Elements.saveCategory.value })
-}
 Elements.addCategory.onclick = () => {
   const Name = Elements.categoryName.value.trim()
   if (!Name) return Message(T('Введите название категории'), true)
@@ -773,6 +768,7 @@ Elements.saveSettings.onclick = async () => {
 }
 window.magelight?.on('__uimode', (Value) => {
   UIVisible = String(Value) === '1'
+  if (UIVisible) MenuOpenedAt = performance.now()
   if (!UIVisible) {
     clearTimeout(PortraitTimer)
     PortraitTimer = null
@@ -1140,7 +1136,7 @@ for (const [Viewport, Slider] of [
   if (!Viewport || !Slider) continue
   Viewport.addEventListener('wheel', Event => {
     Event.preventDefault()
-    Slider.value = String(Math.max(.5, Math.min(2.5, Number(Slider.value) + (Event.deltaY < 0 ? .15 : -.15))))
+    Slider.value = String(Math.max(.25, Math.min(4, Number(Slider.value) + (Event.deltaY < 0 ? .15 : -.15))))
     Slider.dispatchEvent(new window.Event('input'))
   }, { passive: false })
 }
@@ -1200,7 +1196,7 @@ for (const Prefix of ['preview', 'itemPreview']) {
   Viewport.onpointermove = Event => {
     if (!Pan) { Move?.(Event); return }
     if (Pan.depth) {
-      Elements[Prefix + 'Zoom'].value = String(Math.max(.5, Math.min(2.5, Pan.zoom - (Event.clientY - Pan.y) * .006)))
+      Elements[Prefix + 'Zoom'].value = String(Math.max(.25, Math.min(4, Pan.zoom - (Event.clientY - Pan.y) * .006)))
       Elements[Prefix + 'Zoom'].dispatchEvent(new window.Event('input'))
     } else {
       // Смещение кадра не требует пересборки меша и работает также при паузе.
@@ -1230,11 +1226,12 @@ const Cards = [...Elements.equipmentContent.children]
 for (const [Index, Caption] of [[0,'Инвентарь'],[1,'Каталог предметов']]) {
   const Button = document.createElement('button')
   Button.textContent = T(Caption)
-  Button.onclick = () => Cards.forEach((Card, I) => { Card.hidden = I !== Index })
+  Button.onclick = () => { Cards.forEach((Card, I) => { Card.hidden = I !== Index }); EquipmentTabs.querySelectorAll('button').forEach((Tab, I) => Tab.classList.toggle('active', I === Index)) }
   EquipmentTabs.append(Button)
 }
 Elements.equipmentContent.before(EquipmentTabs)
 Cards[1].hidden = true
+EquipmentTabs.firstChild.classList.add('active')
 Elements.equipmentContent.append(Elements.itemPreviewPanel)
 Elements.itemPreviewPanel.hidden = false
 
@@ -1308,12 +1305,13 @@ PortraitDialog.querySelector('.portrait-save').onclick = async () => {
 Elements.equipmentCategory.onchange = () => LoadEquipment()
 Elements.equipmentKind.addEventListener('change', () => { Elements.equipmentCategory.value = ''; RefreshCombo(Elements.equipmentCategory); LoadEquipment() })
 
-for (const [Anchor, Action, Label] of [[Elements.equipmentPreset, 'deletePreset', 'Удалить выбранный набор'], [Elements.presetCategory, 'deleteCategory', 'Удалить пустую категорию']]) {
+for (const [Anchor, Action, Label] of [[Elements.equipmentPreset, 'deletePreset', 'Удалить выбранный набор'], [Elements.presetCategory, 'deleteCategory', 'Удалить категорию']]) {
   const Button = document.createElement('button')
   Button.className = 'danger'
   const Text = document.createTextNode(Label)
   Button.append(Icon('trash'), Text)
   StaticText.push([Text, Label])
+  Button.dataset.libraryDelete = Action
   Anchor.closest('.combo').after(Button)
   Button.onclick = async () => {
     if (!Anchor.value || MutationBusy) return

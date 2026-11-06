@@ -57,7 +57,7 @@
         <div class="brand">
           <svg class="brand-mark icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 34 11v18L20 37 6 29V11ZM6 11l14 8 14-8M20 19v18M13 7l14 8"/><circle cx="20" cy="11" r="3"/></svg>
           <div>
-            <h1>NPC STUDIO <small>0.7.1</small></h1>
+            <h1>NPC STUDIO <small>0.7.2</small></h1>
             <span class="eyebrow">ПЕРСОНАЖИ, КОТОРЫЕ ОСТАНУТСЯ В ВАШЕМ МИРЕ</span>
           </div>
         </div>
@@ -199,7 +199,7 @@
               <p id="previewStatus" class="muted small"></p>
               <div class="preview-controls">
                 <label>Поворот<input id="previewYaw" type="range" min="-180" max="180" value="0" /></label
-                ><label>Масштаб<input id="previewZoom" type="range" min="0.5" max="2.5" step="0.1" value="1" /></label>
+                ><label>Масштаб<input id="previewZoom" type="range" min="0.25" max="4" step="0.1" value="1" /></label>
               </div>
               <label
                 >Освещение<select id="previewLight">
@@ -313,9 +313,9 @@
             <div class="card">
               <div class="card-heading">
                 <svg class="icon" aria-hidden="true"><use href="#i-save" /></svg>
-                <h3>Сохранить надетое</h3>
+                <h3>Редактор набора</h3>
               </div>
-              <p class="muted small">С выбранного NPC. Базовые вещи без улучшений и пользовательских зачарований.</p>
+              <p class="muted small">Добавляйте предметы из каталога и изменяйте их количество.</p>
               <div class="form-grid">
                 <label>Название<input id="presetName" maxlength="80" placeholder="Мой комплект" /></label
                 ><label>Категория<select id="saveCategory"></select></label>
@@ -384,10 +384,11 @@
       <p id="itemPreviewStatus" class="muted small"></p>
       <div class="preview-controls">
         <label>Поворот<input id="itemPreviewYaw" type="range" min="-180" max="180" value="0" /></label>
-        <label>Масштаб<input id="itemPreviewZoom" type="range" min="0.5" max="2.5" step="0.1" value="1" /></label>
+        <label>Масштаб<input id="itemPreviewZoom" type="range" min="0.25" max="4" step="0.1" value="1" /></label>
       </div>
     </aside>
     <script src="i18n.js"></script>
     <script src="script.js"></script>
-  </body>
+  <script src="presets.js"></script>
+</body>
 </html>
