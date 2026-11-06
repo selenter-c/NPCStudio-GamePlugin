@@ -11,6 +11,10 @@ let HairShotSequence = 0
 let HairShotTimer = null
 const HairImages = new Map()
 const HairRetries = new Map()
+const HairCacheChecked = new Set()
+let HairCacheBusy = false
+let HairGalleryRevision = 0
+let TryHairOnClose = false
 
 function CancelLookFrameTick() {
   if (LookFrameTimer !== null) cancelAnimationFrame(LookFrameTimer)
@@ -107,6 +111,8 @@ function PaintHairCard(Card, Image) {
 }
 
 function StopHairShots() {
+  ++HairGalleryRevision
+  HairCacheBusy = false
   HairObserver?.disconnect()
   HairObserver = null
   HairVisible.clear()
@@ -145,9 +151,9 @@ function RenderHairGrid() {
     Card.onclick = () => {
       CancelHairSlider()
       Elements.hairStyle.value = Hair.id
-      Elements.hairPicker.close()
       RenderHairChoice()
-      QueueLookFrame(true, true)
+      TryHairOnClose = true
+      Elements.hairPicker.close()
     }
     HairObserver.observe(Card)
     return Card
@@ -155,19 +161,54 @@ function RenderHairGrid() {
   Elements.hairGrid.scrollTop = 0
 }
 
+function RememberHairImage(Id, Image) {
+  HairImages.set(Id, Image)
+  while (HairImages.size > 512) {
+    const Oldest = HairImages.keys().next().value
+    HairImages.delete(Oldest)
+    HairCacheChecked.delete(Oldest)
+  }
+  const Card = Elements.hairGrid.querySelector('[data-hair="' + Id + '"]')
+  if (Card) PaintHairCard(Card, Image)
+}
+
+async function LoadHairCache(Cards) {
+  const Ids = Cards.map(Node => Number(Node.dataset.hair)).filter(Id => !HairCacheChecked.has(Id)).slice(0, 8)
+  if (HairCacheBusy || !Ids.length) return
+  const Revision = HairGalleryRevision
+  HairCacheBusy = true
+  try {
+    const Result = await Send('hairThumbnailCache', { ...AppearanceAddress(), hairs: Ids }, true)
+    if (Revision !== HairGalleryRevision) return
+    for (const [Id, Image] of Object.entries(Result.hairThumbnails || {})) RememberHairImage(Number(Id), Image)
+  } catch {
+    // При ошибке пакетного чтения остаётся обычный запрос снимка.
+  } finally {
+    if (Revision === HairGalleryRevision) {
+      HairCacheBusy = false
+      for (const Id of Ids) HairCacheChecked.add(Id)
+      StartHairShot()
+    }
+  }
+}
+
 async function StartHairShot() {
-  if (HairShot || !Elements.hairPicker.open || !Appearance?.available || LookFrameBusy) return
+  if (!Elements.hairPicker.open || !Appearance?.available) return
   const Cards = [...HairVisible].filter(Node => {
     const Id = Number(Node.dataset.hair)
     return Node.isConnected && !HairImages.has(Id) && (HairRetries.get(Id) || 0) < 3
   })
   const Grid = Elements.hairGrid.getBoundingClientRect()
-  const Fresh = Node => !HairRetries.has(Number(Node.dataset.hair))
-  const Card = Cards.find(Node => {
-    if (!Fresh(Node)) return false
+  const Visible = Node => {
     const Bounds = Node.getBoundingClientRect()
     return Bounds.bottom > Grid.top && Bounds.top < Grid.bottom
-  }) || Cards.find(Fresh) || Cards[0]
+  }
+  const OnScreen = Cards.filter(Visible)
+  LoadHairCache([...OnScreen, ...Cards.filter(Node => !OnScreen.includes(Node))])
+  if (HairShot || LookFrameBusy) return
+  const Ready = Cards.filter(Node => HairCacheChecked.has(Number(Node.dataset.hair)))
+  const Fresh = Node => !HairRetries.has(Number(Node.dataset.hair))
+  const Card = Ready.find(Node => Fresh(Node) && OnScreen.includes(Node)) || Ready.find(Fresh) || Ready[0]
   if (!Card) return
   const Id = Number(Card.dataset.hair)
   const Token = ++HairShotSequence
@@ -197,10 +238,7 @@ function FinishHairShot(Update) {
     HairShotTimer = setTimeout(StartHairShot, Update.error === 'timed-out' ? 0 : 100)
     return
   }
-  HairImages.set(Id, Update.image || false)
-  while (HairImages.size > 512) HairImages.delete(HairImages.keys().next().value)
-  const Card = Elements.hairGrid.querySelector('[data-hair="' + Id + '"]')
-  if (Card) PaintHairCard(Card, Update.image || false)
+  RememberHairImage(Id, Update.image || false)
   HairShotTimer = setTimeout(StartHairShot, 0)
 }
 
@@ -218,6 +256,7 @@ function InitializeAppearancePreview() {
   Elements.openHairPicker.onclick = () => {
     if (!Appearance?.available) return
     FlushHairSlider()
+    TryHairOnClose = false
     Elements.hairPicker.showModal()
     Elements.hairSearch.value = ''
     RenderHairGrid()
@@ -226,7 +265,8 @@ function InitializeAppearancePreview() {
   Elements.closeHairPicker.onclick = () => Elements.hairPicker.close()
   Elements.hairPicker.addEventListener('close', () => {
     StopHairShots()
-    QueueLookFrame(false, true)
+    QueueLookFrame(TryHairOnClose, true)
+    TryHairOnClose = false
   })
   Elements.hairSearch.oninput = RenderHairGrid
 }
