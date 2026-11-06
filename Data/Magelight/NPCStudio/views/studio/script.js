@@ -490,6 +490,7 @@ function ClearAppearance() {
   ++AppearanceRevision
   Appearance = null
   AppearanceBusy = false
+  ClearLookPreview()
 }
 function AppearanceAddress() {
   if (AppearanceTarget?.reference) return { reference: AppearanceTarget.reference }
@@ -517,9 +518,12 @@ function RenderAppearance() {
     ...HairRows.map(Hair => ({ value: Hair.id, label: Hair.name })),
   ])
   Options(Elements.hairColor, Appearance.colors.map(Color => ({ value: Color.id, label: Color.name })))
+  Elements.openHairPicker.textContent = Elements.hairStyle.selectedOptions[0]?.textContent || Appearance.hairName
+  Elements.openHairPicker.disabled = AppearanceBusy || !Appearance.hairAvailable
   const Changed = Number(Elements.hairStyle.value) !== Appearance.hair ||
     Number(Elements.hairColor.value) !== Appearance.color
   Elements.applyAppearance.disabled = AppearanceBusy || !Appearance.hairAvailable || !Changed
+  Elements.cancelAppearance.disabled = AppearanceBusy || !Changed
   Elements.hairSwatches.replaceChildren(...Appearance.colors.map(Color => {
     const Button = document.createElement('button')
     Button.className = 'hair-swatch'
@@ -530,6 +534,7 @@ function RenderAppearance() {
     Button.onclick = () => {
       Elements.hairColor.value = Color.id
       RenderAppearance()
+      QueueLookFrame(true)
     }
     return Button
   }))
@@ -538,6 +543,8 @@ async function LoadAppearance(Apply = false) {
   const Address = AppearanceAddress()
   if (!Address || AppearanceBusy) return
   const Revision = ++AppearanceRevision
+  clearTimeout(LookFrameTimer)
+  LookFrameBusy = LookFrameAgain = LookTryPending = LookResume = false
   AppearanceBusy = true
   RenderAppearance()
   try {
@@ -559,13 +566,15 @@ async function LoadAppearance(Apply = false) {
     if (Revision === AppearanceRevision) {
       AppearanceBusy = false
       RenderAppearance()
+      QueueLookFrame(false, true)
     }
   }
 }
 Elements.hairStyle.onchange = RenderAppearance
-Elements.hairColor.onchange = RenderAppearance
+Elements.hairColor.onchange = () => { RenderAppearance(); QueueLookFrame(true) }
 Elements.appearanceRefresh.onclick = () => LoadAppearance()
 Elements.applyAppearance.onclick = () => LoadAppearance(true)
+Elements.cancelAppearance.onclick = () => LoadAppearance()
 async function Act(Action, Payload = {}) {
   if (MutationBusy) return
   MutationBusy = true
@@ -754,7 +763,8 @@ function EnhanceSelect(Select) {
   Select.addEventListener('change', () => RefreshCombo(Select))
   RefreshCombo(Select)
 }
-document.querySelectorAll('select').forEach(EnhanceSelect)
+document.querySelectorAll('select:not(#hairStyle)').forEach(EnhanceSelect)
+InitializeAppearancePreview()
 document.addEventListener('pointerdown', (Event) => {
   if (Popup && !Popup.panel.contains(Event.target) && !Popup.button.contains(Event.target)) CloseCombo()
 })
@@ -1142,6 +1152,8 @@ Elements.previewViewport.onpointercancel = () => {
 
 function ReceivePreview(Update) {
   if (!UIVisible) return
+  if (Update.kind === 'hairThumbnail') { FinishHairShot(Update); return }
+  if (Update.identity?.startsWith('look-')) { ReceiveLookFrame(Update); return }
   if (Update.kind === 'portrait') {
     if (Update.pending && !Update.portrait && !Update.error) return
     if (PortraitBusy && PortraitActor?.identity === Update.identity &&
@@ -1186,6 +1198,7 @@ window.studioPreview = (Payload) => {
   catch (Failure) { Message(Failure.message, true) }
 }
 function StopPreview() {
+  ClearLookPreview()
   if (PortraitActor) PortraitAttempts.delete(PortraitActor.identity)
   clearTimeout(PortraitTimer)
   PortraitTimer = null

@@ -57,7 +57,7 @@
         <div class="brand">
           <svg class="brand-mark icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 34 11v18L20 37 6 29V11ZM6 11l14 8 14-8M20 19v18M13 7l14 8"/><circle cx="20" cy="11" r="3"/></svg>
           <div>
-            <h1>NPC STUDIO <small>0.8.0</small></h1>
+            <h1>NPC STUDIO <small>0.8.1</small></h1>
             <span class="eyebrow">ПЕРСОНАЖИ, КОТОРЫЕ ОСТАНУТСЯ В ВАШЕМ МИРЕ</span>
           </div>
         </div>
@@ -338,6 +338,17 @@
           </div>
         </section>
         <section id="appearancePage" class="page" hidden>
+          <div class="appearance-layout">
+          <div class="card appearance-preview">
+            <div class="card-heading">
+              <h3>3D-превью</h3>
+              <button id="appearanceCameraReset" class="icon-button" title="Сбросить камеру">⌖</button>
+            </div>
+            <div id="appearanceViewport" class="preview-viewport">
+              <img id="appearanceImage" alt="3D-превью" draggable="false" hidden />
+            </div>
+            <p id="appearancePreviewStatus" class="muted small" role="status"></p>
+          </div>
           <div class="card appearance-card">
             <div class="card-heading">
               <svg class="icon" aria-hidden="true"><use href="#i-person" /></svg>
@@ -348,13 +359,19 @@
             </div>
             <p id="appearanceStatus" class="muted" role="status"></p>
             <div id="appearanceEditor" hidden>
-              <label>Причёска<select id="hairStyle"></select></label>
+              <label for="openHairPicker">Причёска</label>
+              <button id="openHairPicker" type="button" aria-haspopup="dialog"></button>
+              <select id="hairStyle" hidden></select>
               <p id="appearanceHairHint" class="muted small" hidden>Снимите головной убор и обновите редактор.</p>
               <label>Цвет волос<select id="hairColor"></select></label>
               <div id="hairSwatches" class="hair-swatches"></div>
-              <div class="actions"><button id="applyAppearance" class="primary">Применить внешность</button></div>
+              <div class="actions">
+                <button id="applyAppearance" class="primary">Применить внешность</button>
+                <button id="cancelAppearance" type="button">Отменить примерку</button>
+              </div>
               <p class="muted small">Изменения записываются при сохранении игры.</p>
             </div>
+          </div>
           </div>
         </section>
         <section id="settingsPage" class="page" hidden>
@@ -412,7 +429,17 @@
         <label>Масштаб<input id="itemPreviewZoom" type="range" min="0.25" max="4" step="0.1" value="1" /></label>
       </div>
     </aside>
+    <dialog id="hairPicker" class="hair-picker">
+      <div class="card-heading">
+        <h3>Причёски</h3>
+        <button id="closeHairPicker" class="icon-button" title="Закрыть">×</button>
+      </div>
+      <input id="hairSearch" type="search" placeholder="Причёска или плагин" aria-label="Поиск причёсок" />
+      <p id="hairMatches" class="muted small"></p>
+      <div id="hairGrid" class="hair-grid"></div>
+    </dialog>
     <script src="i18n.js"></script>
+    <script src="appearance.js"></script>
     <script src="script.js"></script>
   <script src="presets.js"></script>
 </body>

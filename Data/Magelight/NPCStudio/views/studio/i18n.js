@@ -1,4 +1,14 @@
 const English = {
+  'Причёски': 'Hairstyles',
+  'Причёска или плагин': 'Hairstyle or plugin',
+  'Поиск причёсок': 'Search hairstyles',
+  'Сбросить камеру': 'Reset camera',
+  'Отменить примерку': 'Discard try-on',
+  'Модель причёски недоступна': 'Hairstyle model unavailable',
+  'Исходный цвет волос недоступен': 'The original hair color is unavailable',
+  'Причёска несовместима, отсутствует модель или требуется Faster HDT-SMP':
+    'This hairstyle is incompatible, its model is missing, or Faster HDT-SMP is required',
+  'Обновите NPCStudio.esp для миниатюр': 'Update NPCStudio.esp to enable thumbnails',
   'ВНЕШНОСТЬ ПЕРСОНАЖА': 'CHARACTER APPEARANCE',
   'Причёска': 'Hairstyle',
   'Цвет волос': 'Hair color',
