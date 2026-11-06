@@ -510,6 +510,21 @@ progress {
   padding: 6px 8px;
   font-size: 10px;
 }
+.replace-loadout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+}
+.replace-loadout label { margin: 0; }
+.equipment-item .item-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
 .library-toolbar {
   display: grid;
   grid-template-columns: 200px minmax(200px, 1fr) auto;

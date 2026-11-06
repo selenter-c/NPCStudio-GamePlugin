@@ -6,6 +6,7 @@ let UIVisible = true
 let Equipment = null
 let EquipmentOwnerId = null
 let EquipmentBusy = false
+let ItemToRemove = null
 let MutationBusy = false
 let DeletionTarget = null
 let SettingsDirty = false
@@ -377,6 +378,12 @@ function ItemIcon(Item) {
 }
 function RenderEquipment() {
   const Actor = CurrentActor()
+  const Presets = State.library?.presets || []
+  Options(Elements.inventoryPreset, [
+    { value: '', label: 'Не выбран' },
+    ...Presets.map(Preset => ({ value: Preset.id, label: Preset.name, disabled: !Preset.available })),
+  ])
+  Elements.replaceLoadout.disabled = !CanChange() || !Presets.some(Preset => Preset.id === Elements.inventoryPreset.value && Preset.available)
   Elements.equipmentEmpty.hidden = !!Actor
   Elements.equipmentContent.hidden = !Actor
   Elements.equipmentAudit.textContent =
@@ -407,17 +414,45 @@ function RenderEquipment() {
     const Button = document.createElement('button')
     Button.textContent = Inventory && Item.worn ? T('Снять') : Inventory ? T('Надеть') : T('Выдать')
     Button.disabled = !Allowed
+    const Address = { plugin: Item.plugin, form: Item.form }
     Button.onclick = () =>
-      LoadEquipment(Inventory && Item.worn ? 'unequipItem' : 'giveItem', {
-        item: { plugin: Item.plugin, form: Item.form },
-        count: Item.kind === 'ammo' ? 100 : 1,
+      LoadEquipment(Inventory ? (Item.worn ? 'unequipItem' : 'equipItem') : 'giveItem', {
+        item: Address,
+        ...(Inventory ? {} : { count: Item.kind === 'ammo' ? 100 : 1 }),
       })
+    const Actions = document.createElement('div')
+    Actions.className = 'item-actions'
+    Actions.append(Button)
+    if (Inventory && Item.removable !== false) {
+      const Remove = document.createElement('button')
+      const Confirming = ItemToRemove?.identity === Actor.identity &&
+        ItemToRemove.plugin === Item.plugin && ItemToRemove.form === Item.form && ItemToRemove.count === Item.count
+      Remove.className = 'danger'
+      Remove.disabled = !Allowed
+      Remove.textContent = Confirming ? T('Удалить ×') + Item.count : T('Удалить')
+      Remove.onclick = () => {
+        if (Confirming) {
+          ItemToRemove = null
+          LoadEquipment('removeItem', { item: Address, count: Item.count, identity: Actor.identity })
+        } else {
+          ItemToRemove = { ...Address, count: Item.count, identity: Actor.identity }
+          RenderEquipment()
+        }
+      }
+      Actions.append(Remove)
+      if (Confirming) {
+        const Cancel = document.createElement('button')
+        Cancel.textContent = T('Отмена')
+        Cancel.onclick = () => { ItemToRemove = null; RenderEquipment() }
+        Actions.append(Cancel)
+      }
+    }
     Info.append(Title, Source)
     Container.tabIndex = 0
     Container.setAttribute('role', 'button')
     Container.onclick = Event => { if (!Event.target.closest('button')) OpenItemPreview(Item) }
     Container.onkeydown = Event => { if (Event.target === Container && ['Enter', ' '].includes(Event.key)) { Event.preventDefault(); OpenItemPreview(Item) } }
-    Container.append(Info, Button)
+    Container.append(Info, Actions)
     return Container
   }
   Elements.equipmentInventory.replaceChildren(...Equipment.inventory.map((Item) => Row(Item, true)))
@@ -426,6 +461,7 @@ function RenderEquipment() {
 }
 function SelectActor(Id) {
   StopPreview()
+  ItemToRemove = null
   SelectedId = Id === '' ? null : Number(Id)
   DeletionTarget = null
   Equipment = null
@@ -434,6 +470,7 @@ function SelectActor(Id) {
 }
 function Tab(Name) {
   StopPreview()
+  ItemToRemove = null
   CurrentTab = Name
   CloseCombo()
   Render()
@@ -456,17 +493,19 @@ async function Act(Action, Payload = {}) {
 }
 async function LoadEquipment(Action = 'equipment', Payload = {}) {
   if (SelectedId === null || EquipmentBusy || MutationBusy) return
+  ItemToRemove = null
   const RequestedId = SelectedId
+  const Query = {
+    id: RequestedId,
+    identity: CurrentActor()?.identity,
+    query: Elements.equipmentQuery.value.trim(),
+    kind: Elements.equipmentKind.value,
+    category: Elements.equipmentCategory.value,
+  }
   EquipmentBusy = true
   Render()
   try {
-    await Send(Action, {
-      id: SelectedId,
-      query: Elements.equipmentQuery.value.trim(),
-      kind: Elements.equipmentKind.value,
-      category: Elements.equipmentCategory.value,
-      ...Payload,
-    })
+    await Send(Action, { ...Query, ...Payload })
     // Сохранённый пользователем портрет меняется только при явной пересъёмке.
 
     if (Action !== 'equipment')
@@ -477,6 +516,8 @@ async function LoadEquipment(Action = 'equipment', Payload = {}) {
       )
   } catch (Failure) {
     Message(Failure.message, true)
+    if (Action !== 'equipment' && CurrentTab === 'equipment' && SelectedId === RequestedId)
+      await Send('equipment', Query, true).catch(() => {})
   } finally {
     EquipmentBusy = false
     Render()
@@ -654,6 +695,8 @@ Elements.presetCategory.onchange = () => {
 Elements.equipmentPreset.onchange = Render
 Elements.refresh.onclick = () => Act('state')
 Elements.equipmentRefresh.onclick = () => LoadEquipment()
+Elements.inventoryPreset.onchange = Render
+Elements.replaceLoadout.onclick = () => LoadEquipment('applyEquipmentPreset', { preset: Elements.inventoryPreset.value })
 Elements.openEquipment.onclick = () => Tab('equipment')
 Elements.equipmentSearchForm.onsubmit = (Event) => {
   Event.preventDefault()
@@ -770,6 +813,7 @@ window.magelight?.on('__uimode', (Value) => {
   UIVisible = String(Value) === '1'
   if (UIVisible) MenuOpenedAt = performance.now()
   if (!UIVisible) {
+    ItemToRemove = null
     clearTimeout(PortraitTimer)
     PortraitTimer = null
     cancelAnimationFrame(CameraTimer)

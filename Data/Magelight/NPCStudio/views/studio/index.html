@@ -57,7 +57,7 @@
         <div class="brand">
           <svg class="brand-mark icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 34 11v18L20 37 6 29V11ZM6 11l14 8 14-8M20 19v18M13 7l14 8"/><circle cx="20" cy="11" r="3"/></svg>
           <div>
-            <h1>NPC STUDIO <small>0.7.2</small></h1>
+            <h1>NPC STUDIO <small>0.7.3</small></h1>
             <span class="eyebrow">ПЕРСОНАЖИ, КОТОРЫЕ ОСТАНУТСЯ В ВАШЕМ МИРЕ</span>
           </div>
         </div>
@@ -271,6 +271,11 @@
                 </button>
               </div>
               <p id="equipmentAudit" class="muted small"></p>
+              <div class="replace-loadout">
+                <label>Набор снаряжения<select id="inventoryPreset"></select></label>
+                <button id="replaceLoadout" class="primary">Сменить экипировку</button>
+              </div>
+              <p class="muted small">Старое снаряжение останется в инвентаре. Из нового набора будут выданы недостающие вещи.</p>
               <div id="equipmentInventory" class="item-list"></div>
             </div>
             <div class="card">
