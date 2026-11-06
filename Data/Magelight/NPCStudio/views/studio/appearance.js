@@ -3,8 +3,6 @@ let LookFrameBusy = false
 let LookFrameAgain = false
 let LookTryPending = false
 let LookResume = false
-let LookYaw = 0, LookPitch = 0, LookZoom = 3
-let LookDrag = null
 let HairObserver = null
 let HairVisible = new Set()
 let HairShot = null
@@ -13,9 +11,13 @@ let HairShotTimer = null
 const HairImages = new Map()
 const HairRetries = new Map()
 
-function ClearLookPreview() {
-  clearTimeout(LookFrameTimer)
+function CancelLookFrameTick() {
+  if (LookFrameTimer !== null) cancelAnimationFrame(LookFrameTimer)
   LookFrameTimer = null
+}
+
+function ClearLookPreview() {
+  CancelLookFrameTick()
   LookFrameBusy = false
   LookFrameAgain = false
   LookTryPending = false
@@ -32,9 +34,7 @@ function QueueLookFrame(TryOn = false, Resume = false) {
   LookTryPending ||= TryOn
   LookResume ||= Resume
   LookFrameAgain = true
-  if (LookFrameBusy) return
-  clearTimeout(LookFrameTimer)
-  LookFrameTimer = setTimeout(ShowLookFrame, TryOn ? 90 : 16)
+  if (!LookFrameBusy && LookFrameTimer === null) LookFrameTimer = requestAnimationFrame(ShowLookFrame)
 }
 
 async function ShowLookFrame() {
@@ -47,10 +47,13 @@ async function ShowLookFrame() {
   const Resume = LookResume
   LookTryPending = LookResume = LookFrameAgain = false
   LookFrameBusy = true
-  Elements.appearancePreviewStatus.textContent = T('Загрузка модели…')
+  if (TryOn || Resume || Elements.appearanceImage.hidden)
+    Elements.appearancePreviewStatus.textContent = T('Загрузка модели…')
   try {
     await Send(TryOn ? 'tryAppearance' : 'appearanceFrame', {
-      ...Address, yaw: LookYaw, pitch: LookPitch, zoom: LookZoom, panY: .3, resume: Resume,
+      ...Address, yaw: Number(Elements.appearanceYaw.value), pitch: LookPitch, zoom: Number(Elements.appearanceZoom.value),
+      panX: Number(Elements.appearanceViewport.dataset.panX || 0), panY: Number(Elements.appearanceViewport.dataset.panY || 0),
+      light: Elements.appearanceLight.value, resume: Resume,
       ...(TryOn ? { hair: Number(Elements.hairStyle.value), color: Number(Elements.hairColor.value) } : {}),
     }, true)
   } catch (Failure) {
@@ -68,10 +71,11 @@ async function ShowLookFrame() {
 function ReceiveLookFrame(Update) {
   if (CurrentTab !== 'appearance' || Appearance?.previewIdentity !== Update.identity || Elements.hairPicker.open) return
   if (Update.image) {
-    Elements.appearanceImage.src = Update.image
+    if (Elements.appearanceImage.getAttribute('src') !== Update.image) Elements.appearanceImage.src = Update.image
     Elements.appearanceImage.hidden = false
   }
-  Elements.appearancePreviewStatus.textContent = T(Update.error || (Update.image ? 'Живое превью · Phantasm' : 'Загрузка модели…'))
+  const Status = T(Update.error || (Update.image || !Elements.appearanceImage.hidden ? 'Живое превью · Phantasm' : 'Загрузка модели…'))
+  if (Elements.appearancePreviewStatus.textContent !== Status) Elements.appearancePreviewStatus.textContent = Status
 }
 
 function PaintHairCard(Card, Image) {
@@ -110,7 +114,7 @@ function RenderHairGrid() {
       else HairVisible.delete(Entry.target)
     }
     StartHairShot()
-  }, { root: Elements.hairGrid })
+  }, { root: Elements.hairGrid, rootMargin: '140px 0px' })
   Elements.hairGrid.replaceChildren(...Rows.map(Hair => {
     const Card = document.createElement('button')
     Card.type = 'button'
@@ -139,17 +143,34 @@ function RenderHairGrid() {
 
 async function StartHairShot() {
   if (HairShot || !Elements.hairPicker.open || !Appearance?.available || LookFrameBusy) return
-  const Card = [...HairVisible].find(Node => {
+  const Cards = [...HairVisible].filter(Node => {
     const Id = Number(Node.dataset.hair)
-    return !HairImages.has(Id) && (HairRetries.get(Id) || 0) < 3
+    return Node.isConnected && !HairImages.has(Id) && (HairRetries.get(Id) || 0) < 3
   })
+  const Grid = Elements.hairGrid.getBoundingClientRect()
+  const Fresh = Node => !HairRetries.has(Number(Node.dataset.hair))
+  const Card = Cards.find(Node => {
+    if (!Fresh(Node)) return false
+    const Bounds = Node.getBoundingClientRect()
+    return Bounds.bottom > Grid.top && Bounds.top < Grid.bottom
+  }) || Cards.find(Fresh) || Cards[0]
   if (!Card) return
   const Id = Number(Card.dataset.hair)
   const Token = ++HairShotSequence
   HairShot = { Id, Token }
-  HairShotTimer = setTimeout(() => FinishHairShot({ token: Token, error: 'timed-out' }), 6500)
-  try { await Send('hairThumbnail', { ...AppearanceAddress(), hair: Id, token: Token }, true) }
+  HairShotTimer = setTimeout(() => RecoverHairShot(Token), 4000)
+  try {
+    const Result = await Send('hairThumbnail', { ...AppearanceAddress(), hair: Id, token: Token }, true)
+    if (Result.hairThumbnail) FinishHairShot(Result.hairThumbnail)
+  }
   catch (Failure) { FinishHairShot({ token: Token, error: Failure.message }) }
+}
+
+async function RecoverHairShot(Token) {
+  if (HairShot?.Token !== Token) return
+  try { await Send('hairThumbnailCancel', { token: Token }, true) }
+  catch { /* Следующие карточки сохраняют собственные попытки. */ }
+  FinishHairShot({ token: Token, error: 'timed-out' })
 }
 
 function FinishHairShot(Update) {
@@ -157,22 +178,16 @@ function FinishHairShot(Update) {
   const { Id } = HairShot
   HairShot = null
   clearTimeout(HairShotTimer)
-  if (['busy', 'view-drawing'].includes(Update.error)) {
-    HairRetries.set(Id, (HairRetries.get(Id) || 0) + 1)
-    HairShotTimer = setTimeout(StartHairShot, 200)
-    return
-  }
-  if (Update.error === 'timed-out') {
-    // Провайдер может ещё держать снимок. При следующем открытии карточку можно запросить снова.
-    HairObserver?.disconnect()
-    HairVisible.clear()
+  if (['busy', 'view-drawing', 'timed-out'].includes(Update.error)) {
+    HairRetries.set(Id, Update.error === 'timed-out' ? 3 : (HairRetries.get(Id) || 0) + 1)
+    HairShotTimer = setTimeout(StartHairShot, Update.error === 'timed-out' ? 0 : 100)
     return
   }
   HairImages.set(Id, Update.image || false)
   while (HairImages.size > 512) HairImages.delete(HairImages.keys().next().value)
   const Card = Elements.hairGrid.querySelector('[data-hair="' + Id + '"]')
   if (Card) PaintHairCard(Card, Update.image || false)
-  HairShotTimer = setTimeout(StartHairShot, 50)
+  HairShotTimer = setTimeout(StartHairShot, 0)
 }
 
 function InitializeAppearancePreview() {
@@ -189,28 +204,4 @@ function InitializeAppearancePreview() {
     QueueLookFrame(false, true)
   })
   Elements.hairSearch.oninput = RenderHairGrid
-  const Viewport = Elements.appearanceViewport
-  Viewport.onpointerdown = Event => {
-    if (Event.button !== 0 || Elements.appearanceImage.hidden) return
-    LookDrag = { x: Event.clientX, y: Event.clientY, yaw: LookYaw, pitch: LookPitch }
-    Viewport.setPointerCapture(Event.pointerId)
-  }
-  Viewport.onpointermove = Event => {
-    if (!LookDrag) return
-    LookYaw = ((LookDrag.yaw + (Event.clientX - LookDrag.x) * .6 + 540) % 360) - 180
-    LookPitch = Math.max(-75, Math.min(75, LookDrag.pitch + (Event.clientY - LookDrag.y) * .25))
-    QueueLookFrame()
-  }
-  Viewport.onpointerup = Viewport.onpointercancel = () => { LookDrag = null }
-  Viewport.addEventListener('wheel', Event => {
-    if (Elements.appearanceImage.hidden) return
-    Event.preventDefault()
-    LookZoom = Math.max(.25, Math.min(4, LookZoom * (Event.deltaY < 0 ? 1.12 : 1 / 1.12)))
-    QueueLookFrame()
-  }, { passive: false })
-  Elements.appearanceCameraReset.onclick = () => {
-    LookYaw = LookPitch = 0
-    LookZoom = 3
-    QueueLookFrame()
-  }
 }

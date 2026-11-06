@@ -543,7 +543,7 @@ async function LoadAppearance(Apply = false) {
   const Address = AppearanceAddress()
   if (!Address || AppearanceBusy) return
   const Revision = ++AppearanceRevision
-  clearTimeout(LookFrameTimer)
+  CancelLookFrameTick()
   LookFrameBusy = LookFrameAgain = LookTryPending = LookResume = false
   AppearanceBusy = true
   RenderAppearance()
@@ -1123,32 +1123,7 @@ function QueueCamera() {
     RequestPreview()
   })
 }
-for (const Name of ['previewYaw', 'previewZoom']) Elements[Name].addEventListener('input', QueueCamera)
-Elements.previewLight.addEventListener('change', () => RequestPreview())
-let ActorPitch = 0, ItemPitch = 0
-let Drag = null
-Elements.previewViewport.onpointerdown = (Event) => {
-  if (Event.target.closest('.camera-toolbar') || Event.button !== 0 || !CurrentActor()) return
-  Drag = { y: Event.clientY, pitch: ActorPitch, x: Event.clientX, yaw: Number(Elements.previewYaw.value) }
-  Elements.previewViewport.setPointerCapture(Event.pointerId)
-}
-Elements.previewViewport.onpointermove = (Event) => {
-  if (!Drag) return
-  Elements.previewYaw.value = String(((Drag.yaw + (Event.clientX - Drag.x) * 0.6 + 540) % 360) - 180)
-  ActorPitch = Math.max(-75, Math.min(75, Drag.pitch + (Event.clientY - Drag.y) * .25))
-  QueueCamera()
-}
-Elements.previewViewport.onpointerup = () => {
-  if (Drag) {
-    Drag = null
-    cancelAnimationFrame(CameraTimer)
-    CameraTimer = null
-    RequestPreview()
-  }
-}
-Elements.previewViewport.onpointercancel = () => {
-  Drag = null
-}
+let ActorPitch = 0, ItemPitch = 0, LookPitch = 0
 
 function ReceivePreview(Update) {
   if (!UIVisible) return
@@ -1232,7 +1207,7 @@ async function RequestItemPreview() {
   try {
     await Send('itemPreview', {
       item: { plugin: ItemTarget.plugin, form: ItemTarget.form },
-      yaw: Number(Elements.itemPreviewYaw.value), pitch: ItemPitch, zoom: Number(Elements.itemPreviewZoom.value), panX: Number(Elements.itemPreviewViewport.dataset.panX || 0), panY: Number(Elements.itemPreviewViewport.dataset.panY || 0), light: Elements.previewLight.value,
+      yaw: Number(Elements.itemPreviewYaw.value), pitch: ItemPitch, zoom: Number(Elements.itemPreviewZoom.value), panX: Number(Elements.itemPreviewViewport.dataset.panX || 0), panY: Number(Elements.itemPreviewViewport.dataset.panY || 0), light: Elements.itemPreviewLight.value,
     }, true)
   } catch (Failure) { if (Sequence === PreviewSequence) Elements.itemPreviewStatus.textContent = T(Failure.message) }
   finally {
@@ -1265,46 +1240,16 @@ function OpenItemPreview(Item) {
   RequestItemPreview()
 }
 Elements.itemPreviewClose.onclick = StopPreview
-for (const Name of ['itemPreviewYaw', 'itemPreviewZoom']) {
-  Elements[Name].addEventListener('input', () => {
-    if (CameraTimer) return
-    CameraTimer = requestAnimationFrame(() => { CameraTimer = null; RequestItemPreview() })
-  })
-}
-let ItemDrag = null
-Elements.itemPreviewViewport.onpointerdown = (Event) => {
-  if (Event.target.closest('.camera-toolbar') || Event.button !== 0) return
-  ItemDrag = { y: Event.clientY, pitch: ItemPitch, x: Event.clientX, yaw: Number(Elements.itemPreviewYaw.value) }
-  Elements.itemPreviewViewport.setPointerCapture(Event.pointerId)
-}
-Elements.itemPreviewViewport.onpointermove = (Event) => {
-  if (!ItemDrag) return
-  Elements.itemPreviewYaw.value = String(((ItemDrag.yaw + (Event.clientX - ItemDrag.x) * .6 + 540) % 360) - 180)
-  ItemPitch = Math.max(-75, Math.min(75, ItemDrag.pitch + (Event.clientY - ItemDrag.y) * .25))
-  Elements.itemPreviewYaw.dispatchEvent(new window.Event('input'))
-}
-Elements.itemPreviewViewport.onpointerup = () => { ItemDrag = null; RequestItemPreview() }
-Elements.itemPreviewViewport.onpointercancel = () => { ItemDrag = null }
-
-Send('state').catch((Failure) => Message(Failure.message, true))
-
-for (const [Viewport, Slider] of [
-  [Elements.previewViewport, Elements.previewZoom],
-  [Elements.itemPreviewViewport, Elements.itemPreviewZoom],
-]) {
-  if (!Viewport || !Slider) continue
-  Viewport.addEventListener('wheel', Event => {
-    Event.preventDefault()
-    Slider.value = String(Math.max(.25, Math.min(4, Number(Slider.value) + (Event.deltaY < 0 ? .15 : -.15))))
-    Slider.dispatchEvent(new window.Event('input'))
-  }, { passive: false })
-}
-
-// Управление камерой помещено поверх соответствующего вида.
-for (const Prefix of ['preview', 'itemPreview']) {
+function InstallPreviewCamera(Prefix, DefaultYaw, ReadPitch, WritePitch, Queue, CanDrag) {
   const Viewport = Elements[Prefix + 'Viewport']
+  const Yaw = Elements[Prefix + 'Yaw']
+  const Zoom = Elements[Prefix + 'Zoom']
   const Toolbar = document.createElement('div')
   Toolbar.className = 'camera-toolbar'
+  const Clamp = (Value, Min, Max) => Math.max(Min, Math.min(Max, Value))
+  const SetPitch = Value => WritePitch(Clamp(Value, -75, 75))
+  const SetZoom = Value => { Zoom.value = String(Clamp(Value, .25, 4)) }
+  const SetYaw = Value => { Yaw.value = String(((Value + 540) % 360) - 180) }
   for (const [Glyph, Axis, Delta] of [['↶','Yaw',-15],['↷','Yaw',15],['↑','Pitch',-10],['↓','Pitch',10],['−','Zoom',-.15],['+','Zoom',.15]]) {
     const Button = document.createElement('button')
     Button.textContent = Glyph
@@ -1312,15 +1257,10 @@ for (const Prefix of ['preview', 'itemPreview']) {
     Button.dataset.delta = Delta
     Button.setAttribute('aria-label', Axis + ' ' + Delta)
     Button.onclick = () => {
-      if (Axis === 'Pitch') {
-        if (Prefix === 'preview') ActorPitch = Math.max(-75, Math.min(75, ActorPitch + Delta))
-        else ItemPitch = Math.max(-75, Math.min(75, ItemPitch + Delta))
-      } else {
-        const Control = Elements[Prefix + Axis]
-        Control.value = String(Number(Control.value) + Delta)
-      }
-      if (Prefix === 'preview') QueueCamera()
-      else RequestItemPreview()
+      if (Axis === 'Pitch') SetPitch(ReadPitch() + Delta)
+      else if (Axis === 'Yaw') SetYaw(Number(Yaw.value) + Delta)
+      else SetZoom(Number(Zoom.value) + Delta)
+      Queue()
     }
     Toolbar.append(Button)
   }
@@ -1329,56 +1269,70 @@ for (const Prefix of ['preview', 'itemPreview']) {
     const Light = document.createElement('select')
     Light.innerHTML = Elements.previewLight.innerHTML
     Light.value = Elements.previewLight.value
-    Light.onchange = () => { Elements.previewLight.value = Light.value; RequestItemPreview() }
-    Light.id = "itemPreviewLight"
+    Light.id = Prefix + 'Light'
+    Elements[Light.id] = Light
+    Light.onchange = Queue
     Toolbar.append(Light)
     EnhanceSelect(Light)
   }
-  Viewport.append(Toolbar)
   const Reset = document.createElement('button')
   Reset.className = 'camera-home'
   Reset.textContent = '◎'
   Reset.title = T('Сбросить камеру')
   Reset.setAttribute('aria-label', Reset.title)
+  Reset.onclick = () => {
+    Viewport.dataset.panX = Viewport.dataset.panY = '0'
+    Yaw.value = String(DefaultYaw)
+    SetZoom(1)
+    SetPitch(0)
+    Queue()
+  }
   Toolbar.append(Reset)
-  const Image = Elements[Prefix + 'Image']
-  let Pan = null, OffsetX = 0, OffsetY = 0
-  const Down = Viewport.onpointerdown, Move = Viewport.onpointermove, Up = Viewport.onpointerup
+  Viewport.append(Toolbar)
+  Viewport.title = T('ЛКМ: поворот · ПКМ: смещение · Shift + ПКМ: глубина · Колесо: масштаб')
+  let Drag = null
   Viewport.oncontextmenu = Event => Event.preventDefault()
   Viewport.onpointerdown = Event => {
-    if (Event.button !== 2) { Down?.(Event); return }
-    if (Event.target.closest('.camera-toolbar')) return
-    Event.preventDefault()
-    Pan = { x: Event.clientX, y: Event.clientY, ox: OffsetX, oy: OffsetY, zoom: Number(Elements[Prefix + 'Zoom'].value), depth: Event.shiftKey }
+    if (Event.target.closest('.camera-toolbar') || ![0, 2].includes(Event.button) || !CanDrag()) return
+    if (Event.button === 2) Event.preventDefault()
+    Drag = {
+      x: Event.clientX, y: Event.clientY, yaw: Number(Yaw.value), pitch: ReadPitch(), zoom: Number(Zoom.value),
+      panX: Number(Viewport.dataset.panX || 0), panY: Number(Viewport.dataset.panY || 0),
+      pan: Event.button === 2, depth: Event.button === 2 && Event.shiftKey,
+    }
     Viewport.setPointerCapture(Event.pointerId)
   }
   Viewport.onpointermove = Event => {
-    if (!Pan) { Move?.(Event); return }
-    if (Pan.depth) {
-      Elements[Prefix + 'Zoom'].value = String(Math.max(.25, Math.min(4, Pan.zoom - (Event.clientY - Pan.y) * .006)))
-      Elements[Prefix + 'Zoom'].dispatchEvent(new window.Event('input'))
+    if (!Drag) return
+    const Dx = Event.clientX - Drag.x, Dy = Event.clientY - Drag.y
+    if (Drag.depth) SetZoom(Drag.zoom - Dy * .006)
+    else if (Drag.pan) {
+      Viewport.dataset.panX = Clamp(Drag.panX + Dx / Math.max(1, Viewport.clientWidth), -.5, .5)
+      Viewport.dataset.panY = Clamp(Drag.panY + Dy / Math.max(1, Viewport.clientHeight), -.5, .5)
     } else {
-      // Смещение кадра не требует пересборки меша и работает также при паузе.
-      OffsetX = Math.max(-Viewport.clientWidth / 2, Math.min(Viewport.clientWidth / 2, Pan.ox + Event.clientX - Pan.x))
-      OffsetY = Math.max(-Viewport.clientHeight / 2, Math.min(Viewport.clientHeight / 2, Pan.oy + Event.clientY - Pan.y))
-      Viewport.dataset.panX = OffsetX / Viewport.clientWidth
-      Viewport.dataset.panY = OffsetY / Viewport.clientHeight
-      Elements[Prefix + 'Yaw'].dispatchEvent(new window.Event('input'))
+      SetYaw(Drag.yaw + Dx * .6)
+      SetPitch(Drag.pitch + Dy * .25)
     }
+    Queue()
   }
-  Viewport.onpointerup = Event => { if (Pan) Pan = null; else Up?.(Event) }
-  Viewport.onpointercancel = () => { Pan = null; Drag = null; ItemDrag = null }
-  Reset.onclick = () => {
-    OffsetX = OffsetY = 0
-    Image.style.transform = ''; Viewport.dataset.panX = Viewport.dataset.panY = '0'
-    Elements[Prefix + 'Yaw'].value = Prefix === 'preview' ? '0' : '180'
-    Elements[Prefix + 'Zoom'].value = '1'
-    if (Prefix === 'preview') ActorPitch = 0
-    else ItemPitch = 0
-    Elements[Prefix + 'Yaw'].dispatchEvent(new window.Event('input'))
-  }
-  Viewport.title = T('ЛКМ: поворот · ПКМ: смещение · Shift + ПКМ: глубина · Колесо: масштаб')
+  Viewport.onpointerup = Viewport.onpointercancel = Viewport.onlostpointercapture = () => { Drag = null }
+  Viewport.addEventListener('wheel', Event => {
+    if (!CanDrag()) return
+    Event.preventDefault()
+    SetZoom(Number(Zoom.value) + (Event.deltaY < 0 ? .15 : -.15))
+    Queue()
+  }, { passive: false })
+  for (const Control of [Yaw, Zoom]) Control.addEventListener('input', Queue)
 }
+function QueueItemCamera() {
+  if (CameraTimer) return
+  CameraTimer = requestAnimationFrame(() => { CameraTimer = null; RequestItemPreview() })
+}
+InstallPreviewCamera('preview', 0, () => ActorPitch, Value => { ActorPitch = Value }, QueueCamera, () => !!CurrentActor())
+InstallPreviewCamera('itemPreview', 180, () => ItemPitch, Value => { ItemPitch = Value }, QueueItemCamera, () => !!ItemTarget)
+InstallPreviewCamera('appearance', 0, () => LookPitch, Value => { LookPitch = Value }, () => QueueLookFrame(), () => !Elements.appearanceImage.hidden)
+Send('state').catch((Failure) => Message(Failure.message, true))
+
 const EquipmentTabs = document.createElement('div')
 EquipmentTabs.className = 'equipment-tabs'
 const Cards = [...Elements.equipmentContent.children]

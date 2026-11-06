@@ -518,7 +518,6 @@ progress {
 }
 .replace-loadout label { margin: 0; }
 .appearance-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 420px); gap: 16px; align-items: start; }
-.appearance-preview .preview-viewport { height: clamp(300px, 64vh, 660px); max-height: none; }
 #openHairPicker { width: 100%; text-align: left; }
 #openHairPicker::after { content: '▾'; float: right; color: var(--accent); }
 .hair-picker {
