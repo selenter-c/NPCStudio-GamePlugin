@@ -501,10 +501,8 @@ const UpdateHairTrack = StyleRange(Elements.hairStep)
 const FacePartKeys = ['eyes', 'brows', 'beard']
 function RenderFaceParts(Reset = false) {
   const Parts = Appearance?.faceParts || {}
-  Elements.facePartsEditor.hidden = !FacePartKeys.some(Key => Parts[Key])
   for (const Key of FacePartKeys) {
     const Part = Parts[Key]
-    Elements[Key + 'Field'].hidden = !Part
     if (!Part) continue
     const Select = Elements[Key]
     Select.disabled = AppearanceBusy
@@ -513,14 +511,25 @@ function RenderFaceParts(Reset = false) {
       label: Option.plugin ? T(Option.name) + ' · ' + Option.plugin : Option.name,
     })), Reset ? Part.value : undefined)
   }
+  if (Reset) ResetLookControls()
+  RenderLookControls()
 }
 function DraftFaceParts() {
   const Parts = Appearance?.faceParts || {}
   return Object.fromEntries(FacePartKeys.filter(Key => Parts[Key]).map(Key => [Key, Number(Elements[Key].value)]))
 }
 for (const Key of FacePartKeys) Elements[Key].onchange = () => {
+  RenderLookControls()
   RenderHairChoice()
   QueueLookFrame(true)
+}
+function DraftAppearance() {
+  return {
+    hair: Number(Elements.hairStyle.value),
+    color: Number(Elements.hairColor.value),
+    faceParts: DraftFaceParts(),
+    ...(Appearance.skin ? { skin: LookSkin } : {}),
+  }
 }
 const UpdateHeightTrack = StyleRange(Elements.npcHeight)
 function RenderNpcHeight(Reset = false) {
@@ -586,8 +595,10 @@ function RenderHairChoice() {
   const HairChanged = Number(Select.value) !== Appearance.hair ||
     Number(Elements.hairColor.value) !== Appearance.color
   const FaceChanged = Object.entries(DraftFaceParts()).some(([Key, Value]) => Value !== Appearance.faceParts[Key].value)
-  Elements.applyAppearance.disabled = AppearanceBusy || (HairChanged && !Appearance.hairAvailable) || (!HairChanged && !FaceChanged)
-  Elements.cancelAppearance.disabled = AppearanceBusy || (!HairChanged && !FaceChanged)
+  const Changed = HairChanged || FaceChanged || (Appearance.skin && LookSkin !== Appearance.skin.value)
+  Elements.applyAppearance.disabled = AppearanceBusy || (HairChanged && !Appearance.hairAvailable) || !Changed
+  Elements.cancelAppearance.disabled = AppearanceBusy || !Changed
+  Elements.appearanceDraftStatus.textContent = T(Changed ? 'Есть изменения для применения' : 'Внешность сохранена')
 }
 function RenderAppearance() {
   if (CurrentTab !== 'appearance') return
@@ -639,7 +650,7 @@ async function LoadAppearance(Apply = false) {
   try {
     const Result = await Send(Apply ? 'applyAppearance' : 'appearance', {
       ...Address,
-      ...(Apply ? { hair: Number(Elements.hairStyle.value), color: Number(Elements.hairColor.value), faceParts: DraftFaceParts() } : {}),
+      ...(Apply ? DraftAppearance() : {}),
     }, true)
     if (Revision !== AppearanceRevision) return
     Appearance = Result.appearance
@@ -853,7 +864,7 @@ function EnhanceSelect(Select) {
   Select.addEventListener('change', () => RefreshCombo(Select))
   RefreshCombo(Select)
 }
-document.querySelectorAll('select:not(#hairStyle)').forEach(EnhanceSelect)
+document.querySelectorAll('select:not([hidden])').forEach(EnhanceSelect)
 InitializeAppearancePreview()
 document.addEventListener('pointerdown', (Event) => {
   if (Popup && !Popup.panel.contains(Event.target) && !Popup.button.contains(Event.target)) CloseCombo()

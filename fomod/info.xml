@@ -2,7 +2,7 @@
 <fomod>
     <Name>NPC Studio</Name>
     <Author>Selenter</Author>
-    <Version>0.8.6</Version>
+    <Version>0.8.7</Version>
     <Description>Полноценный редактор NPC с PrismUI, SkyrimNet AI-биографиями и системой пресетов.</Description>
     <Groups>
         <element>NPCs</element>

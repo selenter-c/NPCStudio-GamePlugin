@@ -57,7 +57,7 @@
         <div class="brand">
           <svg class="brand-mark icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 34 11v18L20 37 6 29V11ZM6 11l14 8 14-8M20 19v18M13 7l14 8"/><circle cx="20" cy="11" r="3"/></svg>
           <div>
-            <h1>NPC STUDIO <small>0.8.6</small></h1>
+            <h1>NPC STUDIO <small>0.8.7</small></h1>
             <span class="eyebrow">ПЕРСОНАЖИ, КОТОРЫЕ ОСТАНУТСЯ В ВАШЕМ МИРЕ</span>
           </div>
         </div>
@@ -342,6 +342,10 @@
           <div class="card model-card appearance-preview">
             <div class="card-heading">
               <h3>3D-превью</h3>
+              <div class="appearance-camera" role="group" aria-label="Кадрирование">
+                <button type="button" id="lookFull" aria-pressed="true">Весь рост</button>
+                <button type="button" id="lookFace" aria-pressed="false">Лицо</button>
+              </div>
             </div>
             <div id="appearanceViewport" class="preview-viewport">
               <img id="appearanceImage" alt="3D-превью" draggable="false" hidden />
@@ -362,6 +366,15 @@
             </div>
             <p id="appearanceStatus" class="muted" role="status"></p>
             <div id="appearanceEditor" hidden>
+              <div class="appearance-tabs" role="group" aria-label="Категории внешности">
+                <button type="button" data-look-tab="hair" aria-pressed="true">Волосы</button>
+                <button type="button" data-look-tab="eyes" aria-pressed="false">Глаза</button>
+                <button type="button" data-look-tab="brows" aria-pressed="false">Брови</button>
+                <button type="button" data-look-tab="skin" aria-pressed="false">Кожа</button>
+                <button type="button" data-look-tab="beard" aria-pressed="false">Борода</button>
+                <button type="button" data-look-tab="height" aria-pressed="false">Рост</button>
+              </div>
+              <div data-look-panel="hair">
               <label for="openHairPicker">Причёска</label>
               <div class="hair-choice">
                 <button id="openHairPicker" type="button" aria-haspopup="dialog"></button>
@@ -374,18 +387,30 @@
               <p id="appearanceHairHint" class="muted small" hidden>Снимите головной убор и обновите редактор.</p>
               <label>Цвет волос<select id="hairColor"></select></label>
               <div id="hairSwatches" class="hair-swatches"></div>
-              <div id="facePartsEditor" class="face-parts" hidden>
-                <h4>Детали лица</h4>
-                <label id="eyesField" hidden>Глаза<select id="eyes"></select></label>
-                <label id="browsField" hidden>Брови<select id="brows"></select></label>
-                <label id="beardField" hidden>Борода<select id="beard"></select></label>
               </div>
-              <div class="actions">
-                <button id="applyAppearance" class="primary">Применить внешность</button>
-                <button id="cancelAppearance" type="button">Отменить примерку</button>
+              <div id="facePartsEditor" data-look-panel="parts" hidden>
+                <select id="eyes" hidden aria-label="Глаза"></select>
+                <select id="brows" hidden aria-label="Брови"></select>
+                <select id="beard" hidden aria-label="Борода"></select>
+                <p id="faceChoiceName" class="appearance-choice-title"></p>
+                <div class="hair-slider">
+                  <input id="faceStep" type="range" min="0" max="0" value="0" step="1" aria-label="Быстрый выбор детали лица" />
+                  <output id="faceStepCount" class="muted small"></output>
+                </div>
+                <input id="faceSearch" type="search" placeholder="Название или плагин" aria-label="Название или плагин" />
+                <div id="faceChoices" class="face-choices"></div>
+                <p id="faceNoResults" class="muted small" hidden>Нет совпадений</p>
               </div>
-              <p class="muted small">Изменения записываются при сохранении игры.</p>
-              <div class="appearance-height">
+              <div data-look-panel="skin" hidden>
+                <label for="skinStep">Оттенок кожи</label>
+                <p id="skinChoiceName" class="appearance-choice-title"></p>
+                <div class="hair-slider">
+                  <input id="skinStep" type="range" min="0" max="0" value="0" step="1" />
+                  <output id="skinStepCount" class="muted small"></output>
+                </div>
+                <div id="skinSwatches" class="hair-swatches"></div>
+              </div>
+              <div class="appearance-height" data-look-panel="height" hidden>
                 <label for="npcHeight">Рост</label>
                 <div class="hair-slider">
                   <input id="npcHeight" type="range" min="75" max="125" value="100" step="1" />
@@ -396,6 +421,14 @@
                   <button id="applyNpcHeight" type="button">Применить рост</button>
                   <button id="resetNpcHeight" type="button">Вернуть к 100%</button>
                 </div>
+              </div>
+              <div class="appearance-commit">
+                <p id="appearanceDraftStatus" class="muted small" aria-live="polite"></p>
+                <div class="actions">
+                  <button id="applyAppearance" class="primary">Применить внешность</button>
+                  <button id="cancelAppearance" type="button">Отменить примерку</button>
+                </div>
+                <p class="muted small">Изменения записываются при сохранении игры.</p>
               </div>
             </div>
           </div>

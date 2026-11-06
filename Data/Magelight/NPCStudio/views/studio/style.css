@@ -517,7 +517,23 @@ progress {
   gap: 10px;
 }
 .replace-loadout label { margin: 0; }
-.appearance-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 420px); gap: 16px; align-items: start; }
+.appearance-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 480px); gap: 16px; align-items: start; }
+.appearance-card { min-width: 0; }
+.appearance-preview .card-heading { justify-content: space-between; flex-wrap: wrap; }
+.appearance-tabs, .appearance-camera { display: flex; flex-wrap: wrap; gap: 6px; }
+.appearance-tabs { padding: 0 0 12px; margin: 0 0 12px; border-bottom: 1px solid var(--border); }
+.appearance-tabs button, .appearance-camera button { min-height: 30px; padding: 5px 10px; }
+:is(.appearance-tabs, .appearance-camera, .face-choices) button[aria-pressed=true] {
+  color: var(--accent); border-color: var(--accent); background: var(--panel);
+}
+.appearance-choice-title { margin: 0 0 7px; color: var(--accent); font-weight: 600; overflow-wrap: anywhere; }
+.face-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; max-height: min(32vh, 320px); overflow: auto; padding: 2px; }
+.face-choices button { display: grid; align-content: center; gap: 3px; min-height: 44px; padding: 6px 8px; text-align: left; overflow-wrap: anywhere; }
+.face-choices small { color: var(--muted); }
+#faceSearch { width: 100%; margin: 9px 0 6px; }
+#faceStepCount, #skinStepCount { white-space: nowrap; font-variant-numeric: tabular-nums; }
+#skinSwatches { margin-top: 10px; }
+.appearance-commit { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 8px; }
 #openHairPicker { width: 100%; text-align: left; }
 #openHairPicker::after { content: '▾'; float: right; color: var(--accent); }
 .hair-choice { display: grid; grid-template-columns: minmax(0, 1fr) minmax(100px, .85fr); gap: 10px; align-items: center; }
@@ -525,9 +541,6 @@ progress {
 .hair-slider { display: flex; gap: 8px; align-items: center; }
 .hair-slider .smooth-range { flex: 1; margin: 0 4px; min-width: 0; }
 #hairStepCount { white-space: nowrap; font-variant-numeric: tabular-nums; }
-.face-parts { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
-.face-parts h4 { margin: 0 0 8px; }
-.appearance-height { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
 #npcHeightValue { min-width: 5ch; text-align: right; font-variant-numeric: tabular-nums; }
 .hair-picker {
   width: min(740px, 88vw); max-height: 85vh; padding: 20px; color: var(--text);
@@ -1031,11 +1044,11 @@ input[type=range] { accent-color: var(--accent); height: 5px; border-radius: 8px
 /* Общая палитра применяется и к окнам верхнего слоя. */
 .portrait-editor { background:var(--panel); color:var(--text); border-color:var(--border); }
 .portrait-circle { border-color:var(--accent); }
-#uiScale, .circle-size, #hairStep, #npcHeight { background:var(--border); padding:0; height:6px; accent-color:var(--accent); transition:background .18s ease; }
-:is(#hairStep, #npcHeight) { appearance: none; border: 0; border-radius: 9px; }
-:is(#hairStep, #npcHeight)::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; }
-:is(#hairStep, #npcHeight):focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
-:is(#hairStep, #npcHeight):disabled + .smooth-thumb { opacity: .45; }
+#uiScale, .circle-size, .appearance-card input[type=range] { background:var(--border); padding:0; height:6px; accent-color:var(--accent); transition:background .18s ease; }
+.appearance-card input[type=range] { appearance: none; border: 0; border-radius: 9px; }
+.appearance-card input[type=range]::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; }
+.appearance-card input[type=range]:focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
+.appearance-card input[type=range]:disabled + .smooth-thumb { opacity: .45; }
 #uiScale::-webkit-slider-thumb, .circle-size::-webkit-slider-thumb { background:var(--accent); border-color:var(--panel); box-shadow:0 0 0 2px var(--border); transition:box-shadow .18s ease, transform .18s ease; }
 #uiScale:hover::-webkit-slider-thumb, .circle-size:hover::-webkit-slider-thumb { transform:scale(1.15); box-shadow:0 0 0 4px var(--border); }
 .equipment-layout > .item-preview-panel { position:sticky; top:12px; max-height:calc(100vh - 180px); overflow:auto; }
