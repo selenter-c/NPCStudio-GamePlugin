@@ -498,6 +498,53 @@ function AppearanceAddress() {
   return Actor ? { id: Actor.id, identity: Actor.identity } : null
 }
 const UpdateHairTrack = StyleRange(Elements.hairStep)
+const UpdateHeightTrack = StyleRange(Elements.npcHeight)
+function RenderNpcHeight(Reset = false) {
+  const Height = Appearance?.height
+  if (!Height) return
+  const Input = Elements.npcHeight
+  Input.min = Math.min(Height.min, Height.percent)
+  Input.max = Math.max(Height.max, Height.percent)
+  if (Reset) Input.value = Height.percent
+  const Value = Number(Input.value)
+  Elements.npcHeightValue.value = Value + '%'
+  Input.setAttribute('aria-valuetext', Value + '%')
+  Input.disabled = AppearanceBusy
+  Elements.applyNpcHeight.disabled = AppearanceBusy || Value === Height.percent || Value < Height.min || Value > Height.max
+  Elements.resetNpcHeight.disabled = AppearanceBusy || Value === 100
+  UpdateHeightTrack()
+}
+Elements.npcHeight.oninput = () => RenderNpcHeight()
+Elements.resetNpcHeight.onclick = () => {
+  Elements.npcHeight.value = '100'
+  RenderNpcHeight()
+}
+Elements.applyNpcHeight.onclick = async () => {
+  if (Elements.applyNpcHeight.disabled || !Appearance?.height) return
+  const Address = AppearanceAddress()
+  if (!Address) return
+  const Revision = AppearanceRevision
+  const Percent = Number(Elements.npcHeight.value)
+  AppearanceBusy = true
+  RenderAppearance()
+  let Applied = false
+  try {
+    const Result = await Send('setHeight', { ...Address, percent: Percent }, true)
+    if (Revision !== AppearanceRevision) return
+    Appearance.height = Result.height
+    RenderNpcHeight(true)
+    Applied = true
+    Message(T('Изменения применены. Сохраните игру.'))
+  } catch (Failure) {
+    if (Revision === AppearanceRevision) Message(Failure.message, true)
+  } finally {
+    if (Revision === AppearanceRevision) {
+      AppearanceBusy = false
+      RenderAppearance()
+      if (Applied) QueueLookFrame(false, true)
+    }
+  }
+}
 function RenderHairChoice() {
   const Select = Elements.hairStyle
   const Count = Select.options.length
@@ -531,6 +578,7 @@ function RenderAppearance() {
         ? ''
         : 'Внешность недоступна. Нужен загруженный взрослый NPC вне боя. Для NPC из мира требуется уникальный персонаж.')
   if (!Appearance?.available) return
+  RenderNpcHeight()
   Elements.appearanceHairHint.hidden = Appearance.hairAvailable
   const HairRows = Appearance.hairs.map(Hair => ({ value: Hair.id, label: Hair.name }))
   if (!Appearance.hairs.some(Hair => Hair.id === Appearance.hair))
@@ -569,6 +617,7 @@ async function LoadAppearance(Apply = false) {
     }, true)
     if (Revision !== AppearanceRevision) return
     Appearance = Result.appearance
+    RenderNpcHeight(true)
     Elements.hairStyle.value = ''
     Elements.hairColor.value = ''
     RenderAppearance()

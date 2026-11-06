@@ -525,6 +525,8 @@ progress {
 .hair-slider { display: flex; gap: 8px; align-items: center; }
 .hair-slider .smooth-range { flex: 1; margin: 0 4px; min-width: 0; }
 #hairStepCount { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.appearance-height { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+#npcHeightValue { min-width: 5ch; text-align: right; font-variant-numeric: tabular-nums; }
 .hair-picker {
   width: min(740px, 88vw); max-height: 85vh; padding: 20px; color: var(--text);
   background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
@@ -1027,11 +1029,11 @@ input[type=range] { accent-color: var(--accent); height: 5px; border-radius: 8px
 /* Общая палитра применяется и к окнам верхнего слоя. */
 .portrait-editor { background:var(--panel); color:var(--text); border-color:var(--border); }
 .portrait-circle { border-color:var(--accent); }
-#uiScale, .circle-size, #hairStep { background:var(--border); padding:0; height:6px; accent-color:var(--accent); transition:background .18s ease; }
-#hairStep { appearance: none; border: 0; border-radius: 9px; }
-#hairStep::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; }
-#hairStep:focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
-#hairStep:disabled + .smooth-thumb { opacity: .45; }
+#uiScale, .circle-size, #hairStep, #npcHeight { background:var(--border); padding:0; height:6px; accent-color:var(--accent); transition:background .18s ease; }
+:is(#hairStep, #npcHeight) { appearance: none; border: 0; border-radius: 9px; }
+:is(#hairStep, #npcHeight)::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; }
+:is(#hairStep, #npcHeight):focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
+:is(#hairStep, #npcHeight):disabled + .smooth-thumb { opacity: .45; }
 #uiScale::-webkit-slider-thumb, .circle-size::-webkit-slider-thumb { background:var(--accent); border-color:var(--panel); box-shadow:0 0 0 2px var(--border); transition:box-shadow .18s ease, transform .18s ease; }
 #uiScale:hover::-webkit-slider-thumb, .circle-size:hover::-webkit-slider-thumb { transform:scale(1.15); box-shadow:0 0 0 4px var(--border); }
 .equipment-layout > .item-preview-panel { position:sticky; top:12px; max-height:calc(100vh - 180px); overflow:auto; }

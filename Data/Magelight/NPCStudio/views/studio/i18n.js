@@ -14,6 +14,13 @@ const English = {
   'Причёска': 'Hairstyle',
   'Цвет волос': 'Hair color',
   'Применить внешность': 'Apply appearance',
+  'Рост': 'Height',
+  'Применить рост': 'Apply height',
+  'Вернуть к 100%': 'Reset to 100%',
+  '100% — базовый рост NPC. Изменение применяется ко всему персонажу и сохраняется вместе с игрой.':
+    '100% is the NPC’s base height. This scales the entire character and is stored in the game save.',
+  'Рост должен быть от 75 до 125%': 'Height must be between 75% and 125%',
+  'Движок не подтвердил изменение роста': 'The game did not confirm the height change',
   'Изменения записываются при сохранении игры.': 'Changes are recorded when you save the game.',
   'Выберите своего NPC в списке или откройте меню, глядя на NPC.': 'Select your NPC from the list or open the menu while looking at an NPC.',
   'Обновление внешности…': 'Updating appearance…',

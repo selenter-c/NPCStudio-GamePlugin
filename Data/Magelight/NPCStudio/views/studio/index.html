@@ -57,7 +57,7 @@
         <div class="brand">
           <svg class="brand-mark icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 34 11v18L20 37 6 29V11ZM6 11l14 8 14-8M20 19v18M13 7l14 8"/><circle cx="20" cy="11" r="3"/></svg>
           <div>
-            <h1>NPC STUDIO <small>0.8.4</small></h1>
+            <h1>NPC STUDIO <small>0.8.5</small></h1>
             <span class="eyebrow">ПЕРСОНАЖИ, КОТОРЫЕ ОСТАНУТСЯ В ВАШЕМ МИРЕ</span>
           </div>
         </div>
@@ -379,6 +379,18 @@
                 <button id="cancelAppearance" type="button">Отменить примерку</button>
               </div>
               <p class="muted small">Изменения записываются при сохранении игры.</p>
+              <div class="appearance-height">
+                <label for="npcHeight">Рост</label>
+                <div class="hair-slider">
+                  <input id="npcHeight" type="range" min="75" max="125" value="100" step="1" />
+                  <output id="npcHeightValue" for="npcHeight">100%</output>
+                </div>
+                <p class="muted small">100% — базовый рост NPC. Изменение применяется ко всему персонажу и сохраняется вместе с игрой.</p>
+                <div class="actions">
+                  <button id="applyNpcHeight" type="button">Применить рост</button>
+                  <button id="resetNpcHeight" type="button">Вернуть к 100%</button>
+                </div>
+              </div>
             </div>
           </div>
           </div>
