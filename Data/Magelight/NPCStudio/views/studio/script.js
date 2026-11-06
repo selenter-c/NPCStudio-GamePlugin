@@ -497,6 +497,26 @@ function AppearanceAddress() {
   const Actor = CurrentActor()
   return Actor ? { id: Actor.id, identity: Actor.identity } : null
 }
+const UpdateHairTrack = StyleRange(Elements.hairStep)
+function RenderHairChoice() {
+  const Select = Elements.hairStyle
+  const Count = Select.options.length
+  const Index = Math.max(0, Select.selectedIndex)
+  const Name = Select.selectedOptions[0]?.textContent || Appearance.hairName
+  const Position = (Count ? Index + 1 : 0) + ' / ' + Count
+  Elements.openHairPicker.textContent = Name
+  Elements.openHairPicker.disabled = AppearanceBusy || !Appearance.hairAvailable
+  Elements.hairStep.max = String(Math.max(0, Count - 1))
+  Elements.hairStep.value = String(Index)
+  Elements.hairStep.disabled = AppearanceBusy || !Appearance.hairAvailable || Count < 2
+  Elements.hairStep.setAttribute('aria-valuetext', Name + ' · ' + Position)
+  Elements.hairStepCount.textContent = Position
+  UpdateHairTrack()
+  const Changed = Number(Select.value) !== Appearance.hair ||
+    Number(Elements.hairColor.value) !== Appearance.color
+  Elements.applyAppearance.disabled = AppearanceBusy || !Appearance.hairAvailable || !Changed
+  Elements.cancelAppearance.disabled = AppearanceBusy || !Changed
+}
 function RenderAppearance() {
   if (CurrentTab !== 'appearance') return
   const Address = AppearanceAddress()
@@ -512,18 +532,12 @@ function RenderAppearance() {
         : 'Внешность недоступна. Нужен загруженный взрослый NPC вне боя. Для NPC из мира требуется уникальный персонаж.')
   if (!Appearance?.available) return
   Elements.appearanceHairHint.hidden = Appearance.hairAvailable
-  const HairRows = Appearance.hairs.filter(Hair => Hair.id !== Appearance.hair)
-  Options(Elements.hairStyle, [
-    { value: Appearance.hair, label: Appearance.hairName },
-    ...HairRows.map(Hair => ({ value: Hair.id, label: Hair.name })),
-  ])
+  const HairRows = Appearance.hairs.map(Hair => ({ value: Hair.id, label: Hair.name }))
+  if (!Appearance.hairs.some(Hair => Hair.id === Appearance.hair))
+    HairRows.unshift({ value: Appearance.hair, label: Appearance.hairName })
+  Options(Elements.hairStyle, HairRows)
   Options(Elements.hairColor, Appearance.colors.map(Color => ({ value: Color.id, label: Color.name })))
-  Elements.openHairPicker.textContent = Elements.hairStyle.selectedOptions[0]?.textContent || Appearance.hairName
-  Elements.openHairPicker.disabled = AppearanceBusy || !Appearance.hairAvailable
-  const Changed = Number(Elements.hairStyle.value) !== Appearance.hair ||
-    Number(Elements.hairColor.value) !== Appearance.color
-  Elements.applyAppearance.disabled = AppearanceBusy || !Appearance.hairAvailable || !Changed
-  Elements.cancelAppearance.disabled = AppearanceBusy || !Changed
+  RenderHairChoice()
   Elements.hairSwatches.replaceChildren(...Appearance.colors.map(Color => {
     const Button = document.createElement('button')
     Button.className = 'hair-swatch'
@@ -543,6 +557,7 @@ async function LoadAppearance(Apply = false) {
   const Address = AppearanceAddress()
   if (!Address || AppearanceBusy) return
   const Revision = ++AppearanceRevision
+  CancelHairSlider()
   CancelLookFrameTick()
   LookFrameBusy = LookFrameAgain = LookTryPending = LookResume = false
   AppearanceBusy = true
@@ -570,7 +585,6 @@ async function LoadAppearance(Apply = false) {
     }
   }
 }
-Elements.hairStyle.onchange = RenderAppearance
 Elements.hairColor.onchange = () => { RenderAppearance(); QueueLookFrame(true) }
 Elements.appearanceRefresh.onclick = () => LoadAppearance()
 Elements.applyAppearance.onclick = () => LoadAppearance(true)
@@ -1432,14 +1446,19 @@ for (const [Anchor, Action, Label] of [[Elements.equipmentPreset, 'deletePreset'
   }
 }
 
-for (const Input of [document.querySelector('#uiScale'), PortraitDialog.querySelector('.circle-size')]) {
+function StyleRange(Input) {
   const Track = document.createElement('div')
   Track.className = 'smooth-range'
   Input.before(Track); Track.append(Input)
   const Thumb = document.createElement('span')
   Thumb.className = 'smooth-thumb'; Track.append(Thumb)
-  const Update = () => { Thumb.style.left = (100 * (Number(Input.value) - Number(Input.min)) / (Number(Input.max) - Number(Input.min))) + '%' }
+  const Update = () => {
+    const Span = Number(Input.max) - Number(Input.min)
+    Thumb.style.left = (Span > 0 ? 100 * (Number(Input.value) - Number(Input.min)) / Span : 0) + '%'
+  }
   Input.addEventListener('input', Update)
   Input.addEventListener('change', Update)
   Update()
+  return Update
 }
+for (const Input of [document.querySelector('#uiScale'), PortraitDialog.querySelector('.circle-size')]) StyleRange(Input)

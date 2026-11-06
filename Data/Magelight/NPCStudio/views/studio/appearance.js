@@ -3,6 +3,7 @@ let LookFrameBusy = false
 let LookFrameAgain = false
 let LookTryPending = false
 let LookResume = false
+let HairSliderTimer = null
 let HairObserver = null
 let HairVisible = new Set()
 let HairShot = null
@@ -18,6 +19,7 @@ function CancelLookFrameTick() {
 
 function ClearLookPreview() {
   CancelLookFrameTick()
+  CancelHairSlider()
   LookFrameBusy = false
   LookFrameAgain = false
   LookTryPending = false
@@ -27,6 +29,17 @@ function ClearLookPreview() {
   Elements.appearancePreviewStatus.textContent = ''
   StopHairShots()
   if (Elements.hairPicker.open) Elements.hairPicker.close()
+}
+
+function CancelHairSlider() {
+  clearTimeout(HairSliderTimer)
+  HairSliderTimer = null
+}
+
+function FlushHairSlider() {
+  if (HairSliderTimer === null) return
+  CancelHairSlider()
+  QueueLookFrame(true)
 }
 
 function QueueLookFrame(TryOn = false, Resume = false) {
@@ -130,9 +143,10 @@ function RenderHairGrid() {
     Card.append(Thumb, Label, Plugin)
     PaintHairCard(Card, HairImages.get(Hair.id))
     Card.onclick = () => {
+      CancelHairSlider()
       Elements.hairStyle.value = Hair.id
       Elements.hairPicker.close()
-      RenderAppearance()
+      RenderHairChoice()
       QueueLookFrame(true, true)
     }
     HairObserver.observe(Card)
@@ -191,8 +205,19 @@ function FinishHairShot(Update) {
 }
 
 function InitializeAppearancePreview() {
+  Elements.hairStep.oninput = () => {
+    const Index = Number(Elements.hairStep.value)
+    if (Elements.hairStep.disabled || Index === Elements.hairStyle.selectedIndex) return
+    Elements.hairStyle.selectedIndex = Index
+    RenderHairChoice()
+    // Длинное перетаскивание не должно пересобирать модель на каждом промежуточном шаге.
+    CancelHairSlider()
+    HairSliderTimer = setTimeout(FlushHairSlider, 120)
+  }
+  Elements.hairStep.onchange = FlushHairSlider
   Elements.openHairPicker.onclick = () => {
     if (!Appearance?.available) return
+    FlushHairSlider()
     Elements.hairPicker.showModal()
     Elements.hairSearch.value = ''
     RenderHairGrid()

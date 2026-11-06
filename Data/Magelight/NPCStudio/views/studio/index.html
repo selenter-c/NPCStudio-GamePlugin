@@ -57,7 +57,7 @@
         <div class="brand">
           <svg class="brand-mark icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 34 11v18L20 37 6 29V11ZM6 11l14 8 14-8M20 19v18M13 7l14 8"/><circle cx="20" cy="11" r="3"/></svg>
           <div>
-            <h1>NPC STUDIO <small>0.8.2</small></h1>
+            <h1>NPC STUDIO <small>0.8.3</small></h1>
             <span class="eyebrow">ПЕРСОНАЖИ, КОТОРЫЕ ОСТАНУТСЯ В ВАШЕМ МИРЕ</span>
           </div>
         </div>
@@ -363,7 +363,13 @@
             <p id="appearanceStatus" class="muted" role="status"></p>
             <div id="appearanceEditor" hidden>
               <label for="openHairPicker">Причёска</label>
-              <button id="openHairPicker" type="button" aria-haspopup="dialog"></button>
+              <div class="hair-choice">
+                <button id="openHairPicker" type="button" aria-haspopup="dialog"></button>
+                <div class="hair-slider">
+                  <input id="hairStep" type="range" min="0" max="0" value="0" step="1" aria-label="Быстрый выбор причёски" />
+                  <span id="hairStepCount" class="muted small" aria-hidden="true"></span>
+                </div>
+              </div>
               <select id="hairStyle" hidden></select>
               <p id="appearanceHairHint" class="muted small" hidden>Снимите головной убор и обновите редактор.</p>
               <label>Цвет волос<select id="hairColor"></select></label>

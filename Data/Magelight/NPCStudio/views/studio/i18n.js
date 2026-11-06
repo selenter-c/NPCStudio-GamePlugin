@@ -1,4 +1,5 @@
 const English = {
+  'Быстрый выбор причёски': 'Browse hairstyles',
   'Причёски': 'Hairstyles',
   'Причёска или плагин': 'Hairstyle or plugin',
   'Поиск причёсок': 'Search hairstyles',
