@@ -71,7 +71,7 @@ async function ShowLookFrame() {
       ...Address, yaw: Number(Elements.appearanceYaw.value), pitch: LookPitch, zoom: Number(Elements.appearanceZoom.value),
       panX: Number(Elements.appearanceViewport.dataset.panX || 0), panY: Number(Elements.appearanceViewport.dataset.panY || 0),
       light: Elements.appearanceLight.value, resume: Resume,
-      ...(TryOn ? { hair: Number(Elements.hairStyle.value), color: Number(Elements.hairColor.value) } : {}),
+      ...(TryOn ? { hair: Number(Elements.hairStyle.value), color: Number(Elements.hairColor.value), faceParts: DraftFaceParts() } : {}),
     }, true)
   } catch (Failure) {
     if (Revision === AppearanceRevision && CurrentTab === 'appearance')

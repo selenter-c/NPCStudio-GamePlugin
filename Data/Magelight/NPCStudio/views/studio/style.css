@@ -525,6 +525,8 @@ progress {
 .hair-slider { display: flex; gap: 8px; align-items: center; }
 .hair-slider .smooth-range { flex: 1; margin: 0 4px; min-width: 0; }
 #hairStepCount { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.face-parts { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.face-parts h4 { margin: 0 0 8px; }
 .appearance-height { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
 #npcHeightValue { min-width: 5ch; text-align: right; font-variant-numeric: tabular-nums; }
 .hair-picker {

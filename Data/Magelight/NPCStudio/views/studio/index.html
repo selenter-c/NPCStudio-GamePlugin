@@ -57,7 +57,7 @@
         <div class="brand">
           <svg class="brand-mark icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 34 11v18L20 37 6 29V11ZM6 11l14 8 14-8M20 19v18M13 7l14 8"/><circle cx="20" cy="11" r="3"/></svg>
           <div>
-            <h1>NPC STUDIO <small>0.8.5</small></h1>
+            <h1>NPC STUDIO <small>0.8.6</small></h1>
             <span class="eyebrow">ПЕРСОНАЖИ, КОТОРЫЕ ОСТАНУТСЯ В ВАШЕМ МИРЕ</span>
           </div>
         </div>
@@ -374,6 +374,12 @@
               <p id="appearanceHairHint" class="muted small" hidden>Снимите головной убор и обновите редактор.</p>
               <label>Цвет волос<select id="hairColor"></select></label>
               <div id="hairSwatches" class="hair-swatches"></div>
+              <div id="facePartsEditor" class="face-parts" hidden>
+                <h4>Детали лица</h4>
+                <label id="eyesField" hidden>Глаза<select id="eyes"></select></label>
+                <label id="browsField" hidden>Брови<select id="brows"></select></label>
+                <label id="beardField" hidden>Борода<select id="beard"></select></label>
+              </div>
               <div class="actions">
                 <button id="applyAppearance" class="primary">Применить внешность</button>
                 <button id="cancelAppearance" type="button">Отменить примерку</button>

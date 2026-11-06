@@ -498,6 +498,30 @@ function AppearanceAddress() {
   return Actor ? { id: Actor.id, identity: Actor.identity } : null
 }
 const UpdateHairTrack = StyleRange(Elements.hairStep)
+const FacePartKeys = ['eyes', 'brows', 'beard']
+function RenderFaceParts(Reset = false) {
+  const Parts = Appearance?.faceParts || {}
+  Elements.facePartsEditor.hidden = !FacePartKeys.some(Key => Parts[Key])
+  for (const Key of FacePartKeys) {
+    const Part = Parts[Key]
+    Elements[Key + 'Field'].hidden = !Part
+    if (!Part) continue
+    const Select = Elements[Key]
+    Select.disabled = AppearanceBusy
+    Options(Select, Part.options.map(Option => ({
+      value: Option.id,
+      label: Option.plugin ? T(Option.name) + ' · ' + Option.plugin : Option.name,
+    })), Reset ? Part.value : undefined)
+  }
+}
+function DraftFaceParts() {
+  const Parts = Appearance?.faceParts || {}
+  return Object.fromEntries(FacePartKeys.filter(Key => Parts[Key]).map(Key => [Key, Number(Elements[Key].value)]))
+}
+for (const Key of FacePartKeys) Elements[Key].onchange = () => {
+  RenderHairChoice()
+  QueueLookFrame(true)
+}
 const UpdateHeightTrack = StyleRange(Elements.npcHeight)
 function RenderNpcHeight(Reset = false) {
   const Height = Appearance?.height
@@ -559,10 +583,11 @@ function RenderHairChoice() {
   Elements.hairStep.setAttribute('aria-valuetext', Name + ' · ' + Position)
   Elements.hairStepCount.textContent = Position
   UpdateHairTrack()
-  const Changed = Number(Select.value) !== Appearance.hair ||
+  const HairChanged = Number(Select.value) !== Appearance.hair ||
     Number(Elements.hairColor.value) !== Appearance.color
-  Elements.applyAppearance.disabled = AppearanceBusy || !Appearance.hairAvailable || !Changed
-  Elements.cancelAppearance.disabled = AppearanceBusy || !Changed
+  const FaceChanged = Object.entries(DraftFaceParts()).some(([Key, Value]) => Value !== Appearance.faceParts[Key].value)
+  Elements.applyAppearance.disabled = AppearanceBusy || (HairChanged && !Appearance.hairAvailable) || (!HairChanged && !FaceChanged)
+  Elements.cancelAppearance.disabled = AppearanceBusy || (!HairChanged && !FaceChanged)
 }
 function RenderAppearance() {
   if (CurrentTab !== 'appearance') return
@@ -578,6 +603,7 @@ function RenderAppearance() {
         ? ''
         : 'Внешность недоступна. Нужен загруженный взрослый NPC вне боя. Для NPC из мира требуется уникальный персонаж.')
   if (!Appearance?.available) return
+  RenderFaceParts()
   RenderNpcHeight()
   Elements.appearanceHairHint.hidden = Appearance.hairAvailable
   const HairRows = Appearance.hairs.map(Hair => ({ value: Hair.id, label: Hair.name }))
@@ -613,10 +639,11 @@ async function LoadAppearance(Apply = false) {
   try {
     const Result = await Send(Apply ? 'applyAppearance' : 'appearance', {
       ...Address,
-      ...(Apply ? { hair: Number(Elements.hairStyle.value), color: Number(Elements.hairColor.value) } : {}),
+      ...(Apply ? { hair: Number(Elements.hairStyle.value), color: Number(Elements.hairColor.value), faceParts: DraftFaceParts() } : {}),
     }, true)
     if (Revision !== AppearanceRevision) return
     Appearance = Result.appearance
+    RenderFaceParts(true)
     RenderNpcHeight(true)
     Elements.hairStyle.value = ''
     Elements.hairColor.value = ''
