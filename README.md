@@ -35,12 +35,14 @@ Each character uses a persistent game reference. NPCs start as blank characters 
 
 ## Install with Mod Organizer 2
 
-1. Install SKSE64, the AE Address Library, and Magelight UI for your profile.
-2. For 3D features, use the Phantasm that ships with **SeverActions 4.7.0**. If you use the renderer on its own, extract the contents of `97 Phantasm/00 Core` from the original SeverActions archive into a separate MO2 mod. Its root should contain `Interface` and `SKSE`. Enable a single copy of that renderer.
-3. Install `NPCStudio-0.8.7-beta.2-fomod.zip` in MO2. Select **Standard** or the **NPCs Names Distributor compatibility** option.
-4. Enable the mod and `NPCStudio.esp`, then launch Skyrim through SKSE. In the game world, press **Shift + 8** using the top-row number key.
+1. **Enable automatic detection in MO2.** Open **Settings → Plugins → Fomod Installer**, set **`use_any_file`** to **`true`**, and click **OK**. This is a one-time MO2 setting. If the installer is already open, close it and reopen the archive after saving the setting.
+2. Install SKSE64, the AE Address Library, and Magelight UI. Enable the library mods in the MO2 profile where you plan to use NPC Studio.
+3. For 3D features, use the Phantasm that ships with **SeverActions 4.7.0**. To install it separately, extract the contents of `97 Phantasm/00 Core` from the original archive into its own MO2 mod. Its root should contain `Interface` and `SKSE`. If your older NPC Studio installation contains Phantasm, set up the separate renderer mod before replacing NPC Studio.
+4. Open `NPCStudio-0.8.7-beta.2-fomod.zip` in MO2. The installer checks the active profile and preselects **NPCs Names Distributor compatibility** if it finds NPCs Names Distributor or Tamrielic Names. Otherwise, it selects **Standard**. Review the selection and click **Install**. The compatibility rules require SPID.
+5. Enable NPC Studio and `NPCStudio.esp`, then launch Skyrim through SKSE. In the game world, press **Shift + 8** using the top-row number key.
 
-The installer checks Skyrim and SKSE versions automatically. To check the rest of the libraries and preselect the naming option, enable **Settings → Plugins → Fomod Installer → use_any_file** and reopen the installer. It selects **NPCs Names Distributor compatibility** when it detects NPCs Names Distributor or Tamrielic Names, and **Standard** otherwise. You can change the selection manually. The compatibility rules require SPID. MO2 checks for the presence of files such as DLLs and does not verify their version.
+> [!TIP]
+> If a library you already installed is unchecked, confirm that it is enabled in the current MO2 profile and that `use_any_file` is set to `true`. The library checks confirm file presence. Skyrim and SKSE have separate version checks.
 
 Use a separate save for beta testing. Character assignments and appearance are saved with the Skyrim save and its matching SKSE co-save. Settings, custom presets, categories, and portraits live under `Data/SKSE/Plugins/NPCStudio`, often in MO2's Overwrite directory. Keep those files when replacing an installation. Earlier development snapshots with different save formats may require a new game.
 
