@@ -1,10 +1,15 @@
 ![NPC Studio](fomod/images/banner.png)
 
-[**Download the beta**](https://github.com/selenter-c/NPCStudio-GamePlugin/releases/tag/v0.8.7-beta) · [Report an issue](https://github.com/selenter-c/NPCStudio-GamePlugin/issues) · [Native plugin](https://github.com/selenter-c/NPCStudio-NativePlugin) · [Build tools](https://github.com/selenter-c/NPCStudio-Build)
+[**Download the beta**](https://github.com/selenter-c/NPCStudio-GamePlugin/releases) · [Report an issue](https://github.com/selenter-c/NPCStudio-GamePlugin/issues) · [Native plugin](https://github.com/selenter-c/NPCStudio-NativePlugin) · [Build tools](https://github.com/selenter-c/NPCStudio-Build)
+
+> [!NOTE]
+> **Built for SkyrimNet and its community.** Create your own cast of permanent characters and bring them into the SkyrimNet playthroughs and stories you share with others.
+>
+> [**Join the SkyrimNet community on Discord**](https://discord.gg/gHHS7HpJS9) · [Explore SkyrimNet on GitHub](https://github.com/MinLL/SkyrimNet-GamePlugin)
 
 ## Build a cast for SkyrimNet
 
-NPC Studio is an in-game editor for creating permanent NPCs in Skyrim Special Edition 1.6.1170. It was designed primarily for [SkyrimNet](https://github.com/MinLL/SkyrimNet-GamePlugin) playthroughs where you want to make your own cast and let AI frameworks drive their behavior.
+NPC Studio is an in-game editor for creating permanent NPCs in Skyrim Special Edition 1.6.1170.
 
 Each character uses a persistent game reference. NPCs start as blank characters that generally stand idle. NPC Studio gives them a name, appearance, and gear, while SkyrimNet or another AI plugin can provide dialogue and actions. The beta includes the editor and persistent NPCs. Automatic SkyrimNet registration and biography generation are still in development.
 
@@ -32,10 +37,10 @@ Each character uses a persistent game reference. NPCs start as blank characters 
 
 1. Install SKSE64, the AE Address Library, and Magelight UI for your profile.
 2. For 3D features, use the Phantasm that ships with **SeverActions 4.7.0**. If you use the renderer on its own, extract the contents of `97 Phantasm/00 Core` from the original SeverActions archive into a separate MO2 mod. Its root should contain `Interface` and `SKSE`. Enable a single copy of that renderer.
-3. Install `NPCStudio-0.8.7-beta-fomod.zip` in MO2. Select **Standard** or the **NPCs Names Distributor compatibility** option.
+3. Install `NPCStudio-0.8.7-beta.2-fomod.zip` in MO2. Select **Standard** or the **NPCs Names Distributor compatibility** option.
 4. Enable the mod and `NPCStudio.esp`, then launch Skyrim through SKSE. In the game world, press **Shift + 8** using the top-row number key.
 
-The installer shows a dependency checklist. In MO2, enable **Settings → Plugins → FOMOD Installer → use_any_file** before opening the installer if you want it to detect DLL, BIN, and SWF files in the active profile. A warning means the installer could not confirm the requirement. File checks do not identify the version of a DLL.
+The installer checks Skyrim and SKSE versions automatically. To check the rest of the libraries and preselect the naming option, enable **Settings → Plugins → Fomod Installer → use_any_file** and reopen the installer. It selects **NPCs Names Distributor compatibility** when it detects NPCs Names Distributor or Tamrielic Names, and **Standard** otherwise. You can change the selection manually. The compatibility rules require SPID. MO2 checks for the presence of files such as DLLs and does not verify their version.
 
 Use a separate save for beta testing. Character assignments and appearance are saved with the Skyrim save and its matching SKSE co-save. Settings, custom presets, categories, and portraits live under `Data/SKSE/Plugins/NPCStudio`, often in MO2's Overwrite directory. Keep those files when replacing an installation. Earlier development snapshots with different save formats may require a new game.
 

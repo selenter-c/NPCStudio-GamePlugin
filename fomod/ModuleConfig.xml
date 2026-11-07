@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
-  <moduleName>NPC Studio | 0.8.7 Beta</moduleName>
+  <moduleName>NPC Studio | 0.8.7 Beta 2</moduleName>
   <moduleImage path="fomod/images/banner.png" showImage="true" showFade="false"/>
   <requiredInstallFiles>
     <folder source="Core" destination=""/>
@@ -11,7 +11,7 @@
         <group name="Dependency check" type="SelectAny">
           <plugins order="Explicit">
             <plugin name="Skyrim 1.6.1170 and SKSE64 2.2.6">
-              <description>Checks the minimum game and SKSE versions. Use Skyrim Special Edition 1.6.1170 on Steam with SKSE64 2.2.6 for this beta.</description>
+              <description>Use Skyrim Special Edition 1.6.1170 on Steam and launch it through SKSE64 2.2.6.</description>
               <typeDescriptor>
                 <dependencyType>
                   <defaultType name="CouldBeUsable"/>
@@ -19,7 +19,7 @@
                     <pattern>
                       <dependencies operator="And">
                         <gameDependency version="1.6.1170"/>
-                        <foseDependency version="2.2.6"/>
+                        <foseDependency version="0.2.2.6"/>
                       </dependencies>
                       <type name="Required"/>
                     </pattern>
@@ -28,7 +28,7 @@
               </typeDescriptor>
             </plugin>
             <plugin name="Address Library for AE">
-              <description>Looks for versionlib-1-6-1170-0.bin. If an installed library is marked with a warning, enable use_any_file in MO2's FOMOD Installer settings and reopen the installer.</description>
+              <description>Install the Anniversary Edition package of Address Library for SKSE Plugins. It provides the addresses NPC Studio needs on Skyrim 1.6.1170.</description>
               <typeDescriptor>
                 <dependencyType>
                   <defaultType name="CouldBeUsable"/>
@@ -44,7 +44,7 @@
               </typeDescriptor>
             </plugin>
             <plugin name="Magelight UI">
-              <description>Looks for Magelight.dll. Enable Magelight UI with its v4 API and required runtime files. File detection in MO2 requires the FOMOD Installer option use_any_file.</description>
+              <description>Magelight UI runs the in-game editor. Install a version with the Magelight v4 API and enable it in this profile.</description>
               <typeDescriptor>
                 <dependencyType>
                   <defaultType name="CouldBeUsable"/>
@@ -60,7 +60,7 @@
               </typeDescriptor>
             </plugin>
             <plugin name="Phantasm (3D previews)">
-              <description>Looks for the renderer DLL and its Interface file. Use Phantasm 0.3.0 from SeverActions 4.7.0. File detection in MO2 requires the FOMOD Installer option use_any_file.</description>
+              <description>Phantasm provides 3D previews, portraits, and hairstyle thumbnails. Use the renderer included with SeverActions 4.7.0.</description>
               <typeDescriptor>
                 <dependencyType>
                   <defaultType name="CouldBeUsable"/>
@@ -81,26 +81,26 @@
         <group name="Name handling" type="SelectExactlyOne">
           <plugins order="Explicit">
             <plugin name="Standard">
-              <description>Recommended for most profiles. Installs NPC Studio with default name handling. Requires Skyrim 1.6.1170, SKSE64, the AE Address Library, and Magelight UI. For 3D previews, install the Phantasm renderer from SeverActions 4.7.0. Enable NPCStudio.esp and press Shift + 8 in game.</description>
+              <description>Use NPC Studio's built-in name handling.</description>
               <image path="fomod/images/standard.png"/>
-              <typeDescriptor><type name="Recommended"/></typeDescriptor>
+              <typeDescriptor><type name="Optional"/></typeDescriptor>
             </plugin>
             <plugin name="NPCs Names Distributor compatibility">
-              <description>Choose this if your profile uses NPCs Names Distributor with Spell Perk Item Distributor, including Tamrielic Names or Obscuring Names setups. The optional rule file helps NPC Studio characters keep their assigned names visible.</description>
+              <description>Keeps the names you assign visible when you use NPCs Names Distributor, Tamrielic Names, or Obscuring Names. These compatibility rules require Spell Perk Item Distributor.</description>
               <image path="fomod/images/names.png"/>
               <files>
                 <file source="Optional/NND/NPCStudio_NND_DISTR.ini" destination="NPCStudio_NND_DISTR.ini"/>
               </files>
               <typeDescriptor>
                 <dependencyType>
-                  <defaultType name="CouldBeUsable"/>
+                  <defaultType name="Optional"/>
                   <patterns>
                     <pattern>
-                      <dependencies operator="And">
+                      <dependencies operator="Or">
                         <fileDependency file="SKSE/Plugins/NPCsNamesDistributor.dll" state="Active"/>
-                        <fileDependency file="SKSE/Plugins/po3_SpellPerkItemDistributor.dll" state="Active"/>
+                        <fileDependency file="SKSE/Plugins/NPCsNamesDistributor/NNDNord.json" state="Active"/>
                       </dependencies>
-                      <type name="Optional"/>
+                      <type name="Recommended"/>
                     </pattern>
                   </patterns>
                 </dependencyType>
