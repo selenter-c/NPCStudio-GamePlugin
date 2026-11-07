@@ -36,8 +36,9 @@ Each character uses a persistent game reference. NPCs start as blank characters 
 
 1. **Enable automatic detection in MO2.** Open **Settings → Plugins → Fomod Installer**, set **`use_any_file`** to **`true`**, and click **OK**. This is a one-time MO2 setting. If the installer is already open, close it and reopen the archive after saving the setting.
 2. Install SKSE64, the AE Address Library, and Magelight UI. Enable the library mods in the MO2 profile where you plan to use NPC Studio.
-3. Open `NPCStudio-0.8.7-beta.3-fomod.zip` in MO2. The installer includes the files for 3D previews and portraits. It preselects **NPCs Names Distributor compatibility** if it finds NPCs Names Distributor or Tamrielic Names. Otherwise, it selects **Standard**. Review the selection and click **Install**. The compatibility rules require SPID.
-4. Enable NPC Studio and `NPCStudio.esp`, then launch Skyrim through SKSE. In the game world, press **Shift + 8** using the top-row number key.
+3. From the release, save `Prepare-NPCStudio.ps1` next to `NPCStudio-0.8.7-beta.3-fomod.zip` and run `powershell -ExecutionPolicy Bypass -File .\Prepare-NPCStudio.ps1` in that folder. The helper downloads the original 3D preview files, verifies the archive hash, and produces `NPCStudio-0.8.7-beta.3-local-fomod.zip`.
+4. Open the generated ZIP in MO2. The installer preselects **NPCs Names Distributor compatibility** if it finds NPCs Names Distributor or Tamrielic Names. Otherwise, it selects **Standard**. Review the selection and click **Install**. The compatibility rules require SPID.
+5. Enable NPC Studio and `NPCStudio.esp`, then launch Skyrim through SKSE. In the game world, press **Shift + 8** using the top-row number key.
 
 > [!TIP]
 > If a library you already installed is unchecked, confirm that it is enabled in the current MO2 profile and that `use_any_file` is set to `true`. The library checks confirm file presence. Skyrim and SKSE have separate version checks.
