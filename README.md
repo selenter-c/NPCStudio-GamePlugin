@@ -1,6 +1,6 @@
 ![NPC Studio](fomod/images/banner.png)
 
-[**Download the beta**](https://github.com/selenter-c/NPCStudio-GamePlugin/releases) · [Report an issue](https://github.com/selenter-c/NPCStudio-GamePlugin/issues) · [Native plugin](https://github.com/selenter-c/NPCStudio-NativePlugin) · [Build tools](https://github.com/selenter-c/NPCStudio-Build)
+[**Download NPC Studio**](https://github.com/selenter-c/NPCStudio-GamePlugin/releases/latest) · [Installation](#install-with-mod-organizer-2) · [Report an issue](https://github.com/selenter-c/NPCStudio-GamePlugin/issues) · [Native plugin](https://github.com/selenter-c/NPCStudio-NativePlugin) · [Build tools](https://github.com/selenter-c/NPCStudio-Build)
 
 > [!NOTE]
 > **Built for SkyrimNet and its community.** Create your own cast of permanent characters and bring them into the SkyrimNet playthroughs and stories you share with others.
@@ -29,7 +29,6 @@ Each character uses a persistent game reference. NPCs start as blank characters 
 | [SKSE64 2.2.6](https://skse.silverlock.org/) | Loads the native plugin |
 | [Address Library for SKSE Plugins, Anniversary Edition package](https://www.nexusmods.com/skyrimspecialedition/mods/32444) | Provides runtime addresses for 1.6.1170 |
 | [Magelight UI](https://www.nexusmods.com/skyrimspecialedition/mods/193303) | Hosts the in-game editor. Use a build exposing the Magelight v4 API and install its runtime dependencies |
-| [Phantasm 0.3.0 from SeverActions 4.7.0](https://github.com/Severause/SeverActions/releases/tag/v4.7.0) | Required for 3D previews, portraits, and hairstyle thumbnails. The beta uses the exact renderer build shipped in that release |
 
 [SkyrimNet](https://github.com/MinLL/SkyrimNet-GamePlugin) is recommended for AI-driven dialogue and behavior. The editor itself runs independently. The optional naming rules are for [NPCs Names Distributor](https://www.nexusmods.com/skyrimspecialedition/mods/73081) and [Spell Perk Item Distributor](https://www.nexusmods.com/skyrimspecialedition/mods/36869), including [Tamrielic Names](https://www.nexusmods.com/skyrimspecialedition/mods/73153) and its [Russian translation with Obscuring Names](https://www.nexusmods.com/skyrimspecialedition/mods/145614). Physics-enabled hairstyles require [Faster HDT-SMP](https://www.nexusmods.com/skyrimspecialedition/mods/57339) and any requirements of the hairstyle itself.
 
@@ -37,9 +36,8 @@ Each character uses a persistent game reference. NPCs start as blank characters 
 
 1. **Enable automatic detection in MO2.** Open **Settings → Plugins → Fomod Installer**, set **`use_any_file`** to **`true`**, and click **OK**. This is a one-time MO2 setting. If the installer is already open, close it and reopen the archive after saving the setting.
 2. Install SKSE64, the AE Address Library, and Magelight UI. Enable the library mods in the MO2 profile where you plan to use NPC Studio.
-3. For 3D features, use the Phantasm that ships with **SeverActions 4.7.0**. To install it separately, extract the contents of `97 Phantasm/00 Core` from the original archive into its own MO2 mod. Its root should contain `Interface` and `SKSE`. If your older NPC Studio installation contains Phantasm, set up the separate renderer mod before replacing NPC Studio.
-4. Open `NPCStudio-0.8.7-beta.2-fomod.zip` in MO2. The installer checks the active profile and preselects **NPCs Names Distributor compatibility** if it finds NPCs Names Distributor or Tamrielic Names. Otherwise, it selects **Standard**. Review the selection and click **Install**. The compatibility rules require SPID.
-5. Enable NPC Studio and `NPCStudio.esp`, then launch Skyrim through SKSE. In the game world, press **Shift + 8** using the top-row number key.
+3. Open `NPCStudio-0.8.7-beta.3-fomod.zip` in MO2. The installer includes the files for 3D previews and portraits. It preselects **NPCs Names Distributor compatibility** if it finds NPCs Names Distributor or Tamrielic Names. Otherwise, it selects **Standard**. Review the selection and click **Install**. The compatibility rules require SPID.
+4. Enable NPC Studio and `NPCStudio.esp`, then launch Skyrim through SKSE. In the game world, press **Shift + 8** using the top-row number key.
 
 > [!TIP]
 > If a library you already installed is unchecked, confirm that it is enabled in the current MO2 profile and that `use_any_file` is set to `true`. The library checks confirm file presence. Skyrim and SKSE have separate version checks.
@@ -57,8 +55,8 @@ Use a separate save for beta testing. Character assignments and appearance are s
 ## Credits
 
 - [SkyrimNet](https://github.com/MinLL/SkyrimNet-GamePlugin) and [IntelEngine](https://github.com/galanx/IntelEngine-GamePlugin) ([native plugin](https://github.com/galanx/IntelEngine-NativePlugin)) informed the SkyrimNet-oriented workflow.
-- [SeverActions](https://github.com/Severause/SeverActions), Phantasm, and [Magelight UI](https://www.nexusmods.com/skyrimspecialedition/mods/193303) by Severause provided the rendering and UI technology.
+- [SeverActions](https://github.com/Severause/SeverActions) and [Magelight UI](https://www.nexusmods.com/skyrimspecialedition/mods/193303) by Severause provided the rendering and UI technology.
 - [Build a Follower](https://www.nexusmods.com/skyrimspecialedition/mods/185471) inspired the reserved-slot design. [NPC Preset Applier](https://www.nexusmods.com/skyrimspecialedition/mods/193575) and [RaceMenu](https://www.nexusmods.com/skyrimspecialedition/mods/19080) informed the appearance workflow.
 - Developed with **OpenAI Codex**, which helped solve technical implementation problems in the SKSE integration, rendering, save handling, and UI.
 
-The beta includes third-party notices for its native code. Magelight UI and Phantasm are installed from their respective sources.
+The beta includes third-party notices for its native code.

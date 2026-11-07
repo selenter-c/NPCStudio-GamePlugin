@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
-  <moduleName>NPC Studio | 0.8.7 Beta 2</moduleName>
+  <moduleName>NPC Studio | 0.8.7 Beta 3</moduleName>
   <moduleImage path="fomod/images/banner.png" showImage="true" showFade="false"/>
   <requiredInstallFiles>
     <folder source="Core" destination=""/>
@@ -52,23 +52,6 @@
                     <pattern>
                       <dependencies>
                         <fileDependency file="SKSE/Plugins/Magelight.dll" state="Active"/>
-                      </dependencies>
-                      <type name="Required"/>
-                    </pattern>
-                  </patterns>
-                </dependencyType>
-              </typeDescriptor>
-            </plugin>
-            <plugin name="Phantasm (3D previews)">
-              <description>Phantasm provides 3D previews, portraits, and hairstyle thumbnails. Use the renderer included with SeverActions 4.7.0.</description>
-              <typeDescriptor>
-                <dependencyType>
-                  <defaultType name="CouldBeUsable"/>
-                  <patterns>
-                    <pattern>
-                      <dependencies operator="And">
-                        <fileDependency file="SKSE/Plugins/Phantasm.dll" state="Active"/>
-                        <fileDependency file="Interface/phantasm.swf" state="Active"/>
                       </dependencies>
                       <type name="Required"/>
                     </pattern>
