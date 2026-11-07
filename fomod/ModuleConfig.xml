@@ -1,11 +1,114 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
-  <moduleName>NPC Studio</moduleName>
+  <moduleName>NPC Studio | 0.8.7 Beta</moduleName>
+  <moduleImage path="fomod/images/banner.png" showImage="true" showFade="false"/>
   <requiredInstallFiles>
-    <file source="NPCStudio.esp" destination="NPCStudio.esp"/>
-    <file source="NPCStudio_NND_DISTR.ini" destination="NPCStudio_NND_DISTR.ini"/>
-    <folder source="SKSE" destination="SKSE"/>
-    <folder source="Interface" destination="Interface"/>
-    <folder source="Magelight" destination="Magelight"/>
+    <folder source="Core" destination=""/>
   </requiredInstallFiles>
+  <installSteps order="Explicit">
+    <installStep name="NPC Studio Setup">
+      <optionalFileGroups order="Explicit">
+        <group name="Dependency check" type="SelectAny">
+          <plugins order="Explicit">
+            <plugin name="Skyrim 1.6.1170 and SKSE64 2.2.6">
+              <description>Checks the minimum game and SKSE versions. Use Skyrim Special Edition 1.6.1170 on Steam with SKSE64 2.2.6 for this beta.</description>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="CouldBeUsable"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies operator="And">
+                        <gameDependency version="1.6.1170"/>
+                        <foseDependency version="2.2.6"/>
+                      </dependencies>
+                      <type name="Required"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Address Library for AE">
+              <description>Looks for versionlib-1-6-1170-0.bin. If an installed library is marked with a warning, enable use_any_file in MO2's FOMOD Installer settings and reopen the installer.</description>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="CouldBeUsable"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies>
+                        <fileDependency file="SKSE/Plugins/versionlib-1-6-1170-0.bin" state="Active"/>
+                      </dependencies>
+                      <type name="Required"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Magelight UI">
+              <description>Looks for Magelight.dll. Enable Magelight UI with its v4 API and required runtime files. File detection in MO2 requires the FOMOD Installer option use_any_file.</description>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="CouldBeUsable"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies>
+                        <fileDependency file="SKSE/Plugins/Magelight.dll" state="Active"/>
+                      </dependencies>
+                      <type name="Required"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Phantasm (3D previews)">
+              <description>Looks for the renderer DLL and its Interface file. Use Phantasm 0.3.0 from SeverActions 4.7.0. File detection in MO2 requires the FOMOD Installer option use_any_file.</description>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="CouldBeUsable"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies operator="And">
+                        <fileDependency file="SKSE/Plugins/Phantasm.dll" state="Active"/>
+                        <fileDependency file="Interface/phantasm.swf" state="Active"/>
+                      </dependencies>
+                      <type name="Required"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+          </plugins>
+        </group>
+        <group name="Name handling" type="SelectExactlyOne">
+          <plugins order="Explicit">
+            <plugin name="Standard">
+              <description>Recommended for most profiles. Installs NPC Studio with default name handling. Requires Skyrim 1.6.1170, SKSE64, the AE Address Library, and Magelight UI. For 3D previews, install the Phantasm renderer from SeverActions 4.7.0. Enable NPCStudio.esp and press Shift + 8 in game.</description>
+              <image path="fomod/images/standard.png"/>
+              <typeDescriptor><type name="Recommended"/></typeDescriptor>
+            </plugin>
+            <plugin name="NPCs Names Distributor compatibility">
+              <description>Choose this if your profile uses NPCs Names Distributor with Spell Perk Item Distributor, including Tamrielic Names or Obscuring Names setups. The optional rule file helps NPC Studio characters keep their assigned names visible.</description>
+              <image path="fomod/images/names.png"/>
+              <files>
+                <file source="Optional/NND/NPCStudio_NND_DISTR.ini" destination="NPCStudio_NND_DISTR.ini"/>
+              </files>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="CouldBeUsable"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies operator="And">
+                        <fileDependency file="SKSE/Plugins/NPCsNamesDistributor.dll" state="Active"/>
+                        <fileDependency file="SKSE/Plugins/po3_SpellPerkItemDistributor.dll" state="Active"/>
+                      </dependencies>
+                      <type name="Optional"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+          </plugins>
+        </group>
+      </optionalFileGroups>
+    </installStep>
+  </installSteps>
 </config>
