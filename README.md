@@ -23,8 +23,6 @@ Each character uses a persistent game reference. NPCs start as blank characters 
 
 ## Requirements
 
-| Component | Purpose |
-| --- | --- |
 | Skyrim build | Store | SKSE64 | Address Library AE |
 | --- | --- | --- | --- |
 | 1.7.104 | Steam | 2.3.1 | v13 or newer |
@@ -35,7 +33,8 @@ Each character uses a persistent game reference. NPCs start as blank characters 
 
 Install the SKSE64 build matching your executable and the Anniversary Edition Address Library package that contains its `versionlib` file. [SKSE64 downloads](https://skse.silverlock.org/) · [SKSE64 archive](https://skse.silverlock.org/download/archive/) · [Address Library AE](https://www.nexusmods.com/skyrimspecialedition/mods/32444?tab=files)
 
-Use Magelight UI with the v4 API and its required runtime files. For Skyrim 1.7.x, use Magelight UI 1.8.0 or a newer compatible build. [Magelight UI](https://www.nexusmods.com/skyrimspecialedition/mods/193303)
+- **Magelight UI** with the v4 API and its required runtime files. Use 1.8.0 or a newer compatible build on Skyrim 1.7.x. Live previews use its Direct3D 11 mode. [Magelight UI](https://www.nexusmods.com/skyrimspecialedition/mods/193303)
+- **Phantasm 1.0.0 or newer** for 3D previews. Version 1.0.0 is included in the FOMOD. [Phantasm](https://www.nexusmods.com/skyrimspecialedition/mods/197470)
 
 [SkyrimNet](https://github.com/MinLL/SkyrimNet-GamePlugin) is recommended for AI-driven dialogue and behavior. The editor itself runs independently. The optional naming rules are for [NPCs Names Distributor](https://www.nexusmods.com/skyrimspecialedition/mods/73081) and [Spell Perk Item Distributor](https://www.nexusmods.com/skyrimspecialedition/mods/36869), including [Tamrielic Names](https://www.nexusmods.com/skyrimspecialedition/mods/73153) and its [Russian translation with Obscuring Names](https://www.nexusmods.com/skyrimspecialedition/mods/145614). Physics-enabled hairstyles require [Faster HDT-SMP](https://www.nexusmods.com/skyrimspecialedition/mods/57339) and any requirements of the hairstyle itself.
 
@@ -43,7 +42,7 @@ Use Magelight UI with the v4 API and its required runtime files. For Skyrim 1.7.
 
 1. **Enable automatic detection in MO2.** Open **Settings → Plugins → Fomod Installer**, set **`use_any_file`** to **`true`**, and click **OK**. This is a one-time MO2 setting. If the installer is already open, close it and reopen the archive after saving the setting.
 2. Install SKSE64, the AE Address Library, and Magelight UI using the table above. Enable the library mods in the MO2 profile where you plan to use NPC Studio.
-3. Open the NPC Studio FOMOD ZIP in MO2. It checks the executable version reported by MO2, the corresponding minimum SKSE version, and the matching Address Library file. The same NPC Studio DLL is installed for all five builds. The ZIP includes Phantasm 1.0.0. If SeverActions or another mod also supplies its files, let the newest compatible copy win in MO2. Live previews use Magelight's Direct3D 11 mode.
+3. Open the NPC Studio FOMOD ZIP in MO2. It checks the executable version reported by MO2, the corresponding SKSE version, and the matching Address Library file. The same NPC Studio DLL is installed for all five builds.
 4. The installer preselects **NPCs Names Distributor compatibility** if it finds NPCs Names Distributor or Tamrielic Names. Otherwise, it selects **Standard**. Review the selection and click **Install**. The compatibility rules require SPID.
 5. Enable NPC Studio and `NPCStudio.esp`, then launch Skyrim through SKSE. In the game world, press **Shift + 8** using the top-row number key.
 
@@ -63,7 +62,7 @@ Use a separate save for beta testing. Character assignments and appearance are s
 ## Credits
 
 - [SkyrimNet](https://github.com/MinLL/SkyrimNet-GamePlugin) and [IntelEngine](https://github.com/galanx/IntelEngine-GamePlugin) ([native plugin](https://github.com/galanx/IntelEngine-NativePlugin)) informed the SkyrimNet-oriented workflow.
-- Severause created the rendering and UI technology used by the editor. [Phantasm](https://github.com/Severause/Phantasm) · [Magelight UI](https://www.nexusmods.com/skyrimspecialedition/mods/193303) · [SeverActions](https://github.com/Severause/SeverActions)
+- Severause created the rendering and UI technology used by the editor. [SeverActions](https://github.com/Severause/SeverActions)
 - [Build a Follower](https://www.nexusmods.com/skyrimspecialedition/mods/185471) inspired the reserved-slot design. [NPC Preset Applier](https://www.nexusmods.com/skyrimspecialedition/mods/193575) and [RaceMenu](https://www.nexusmods.com/skyrimspecialedition/mods/19080) informed the appearance workflow.
 - Developed with **OpenAI Codex**, which helped solve technical implementation problems in the SKSE integration, rendering, save handling, and UI.
 
