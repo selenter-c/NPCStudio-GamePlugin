@@ -11,7 +11,7 @@
 
 NPC Studio is an in-game editor for creating permanent NPCs in Skyrim Special Edition on Steam and GOG.
 
-Each character uses a persistent game reference. NPCs start as blank characters that generally stand idle. NPC Studio gives them a name, appearance, and gear, while SkyrimNet or another AI plugin can provide dialogue and actions. The beta includes the editor and persistent NPCs. Automatic SkyrimNet registration and biography generation are still in development.
+Each character uses a persistent game reference. NPCs start as blank characters that generally stand idle. NPC Studio gives them a name, appearance, and gear, while SkyrimNet or another AI plugin can provide dialogue and actions. Automatic SkyrimNet registration and biography generation are still in development.
 
 ## Features
 
@@ -23,6 +23,8 @@ Each character uses a persistent game reference. NPCs start as blank characters 
 
 ## Requirements
 
+### Supported Skyrim versions
+
 | Skyrim build | Store | SKSE64 | Address Library AE |
 | --- | --- | --- | --- |
 | 1.7.104 | Steam | 2.3.1 | v13 or newer |
@@ -31,25 +33,35 @@ Each character uses a persistent game reference. NPCs start as blank characters 
 | 1.6.1170 | Steam | 2.2.6 **Steam** | v10 or newer |
 | 1.6.1130 | Steam | 2.2.5 | v9 or newer |
 
-Install the SKSE64 build matching your executable and the Anniversary Edition Address Library package that contains its `versionlib` file. [SKSE64 downloads](https://skse.silverlock.org/) · [SKSE64 archive](https://skse.silverlock.org/download/archive/) · [Address Library AE](https://www.nexusmods.com/skyrimspecialedition/mods/32444?tab=files)
+### Required mods and tools
 
-- **Magelight UI** with the v4 API and its required runtime files. Use 1.8.0 or a newer compatible build on Skyrim 1.7.x. Live previews use its Direct3D 11 mode. [Magelight UI](https://www.nexusmods.com/skyrimspecialedition/mods/193303)
-- **Phantasm 1.0.0 or newer** for 3D previews. Version 1.0.0 is included in the FOMOD. [Phantasm](https://www.nexusmods.com/skyrimspecialedition/mods/197470)
+| Dependency | What it does |
+| --- | --- |
+| **[SKSE64](https://skse.silverlock.org/)** | Loads the NPC Studio native plugin. Use the version and store edition in the table above. Older builds are in the [SKSE64 archive](https://skse.silverlock.org/download/archive/). |
+| **[Address Library for SKSE Plugins (AE)](https://www.nexusmods.com/skyrimspecialedition/mods/32444?tab=files)** | Provides the engine address table for your Skyrim executable. Install the AE package that contains its matching `versionlib` file. |
+| **[Magelight UI](https://www.nexusmods.com/skyrimspecialedition/mods/193303)** | Runs the in-game editor. Install a build with the v4 API and its required runtime files. For Skyrim 1.7.x, use 1.8.0 or a newer compatible build. Live previews use Direct3D 11 mode. |
+| **[Phantasm](https://www.nexusmods.com/skyrimspecialedition/mods/197470)** | Renders live NPC and item previews, and captures character portraits. Install and enable version 1.0.0 or newer separately. |
 
-[SkyrimNet](https://github.com/MinLL/SkyrimNet-GamePlugin) is recommended for AI-driven dialogue and behavior. The editor itself runs independently. The optional naming rules are for [NPCs Names Distributor](https://www.nexusmods.com/skyrimspecialedition/mods/73081) and [Spell Perk Item Distributor](https://www.nexusmods.com/skyrimspecialedition/mods/36869), including [Tamrielic Names](https://www.nexusmods.com/skyrimspecialedition/mods/73153) and its [Russian translation with Obscuring Names](https://www.nexusmods.com/skyrimspecialedition/mods/145614). Physics-enabled hairstyles require [Faster HDT-SMP](https://www.nexusmods.com/skyrimspecialedition/mods/57339) and any requirements of the hairstyle itself.
+### Optional mods
+
+| Mod or feature | When to install it |
+| --- | --- |
+| **[SkyrimNet](https://github.com/MinLL/SkyrimNet-GamePlugin)** | Recommended for AI-driven dialogue and behavior for your NPCs. |
+| **[NPCs Names Distributor](https://www.nexusmods.com/skyrimspecialedition/mods/73081)** and **[Spell Perk Item Distributor (SPID)](https://www.nexusmods.com/skyrimspecialedition/mods/36869)** | If you use a name-distribution setup, select the optional FOMOD compatibility rules to keep names assigned in NPC Studio visible. SPID applies those rules. This also covers [Tamrielic Names](https://www.nexusmods.com/skyrimspecialedition/mods/73153) and its [Russian translation with Obscuring Names](https://www.nexusmods.com/skyrimspecialedition/mods/145614). |
+| **[Faster HDT-SMP](https://www.nexusmods.com/skyrimspecialedition/mods/57339)** | Install for physics-enabled hairstyles that require it. Follow the requirements of the individual hairstyle mod. |
 
 ## Install with Mod Organizer 2
 
 1. **Enable automatic detection in MO2.** Open **Settings → Plugins → Fomod Installer**, set **`use_any_file`** to **`true`**, and click **OK**. This is a one-time MO2 setting. If the installer is already open, close it and reopen the archive after saving the setting.
-2. Install SKSE64, the AE Address Library, and Magelight UI using the table above. Enable the library mods in the MO2 profile where you plan to use NPC Studio.
-3. Open the NPC Studio FOMOD ZIP in MO2. It checks the executable version reported by MO2, the corresponding SKSE version, and the matching Address Library file. The same NPC Studio DLL is installed for all five builds.
-4. The installer preselects **NPCs Names Distributor compatibility** if it finds NPCs Names Distributor or Tamrielic Names. Otherwise, it selects **Standard**. Review the selection and click **Install**. The compatibility rules require SPID.
+2. Install SKSE64, the AE Address Library, Magelight UI, and Phantasm using the requirements above. Enable the dependency mods in the MO2 profile where you plan to use NPC Studio.
+3. Open the NPC Studio FOMOD ZIP in MO2. The Skyrim version list preselects the executable version reported by MO2. You can change the selection to see the requirements for another build. The dependency check still reports the installed game, SKSE, matching Address Library, Magelight UI, and Phantasm. All five choices install the same NPC Studio DLL.
+4. The installer preselects **NPCs Names Distributor compatibility** if it finds NPCs Names Distributor or Tamrielic Names. Otherwise, it selects **Standard**. Review the selection and click **Install**. If upgrading from 0.8.10 or another version that bundled Phantasm, choose **Replace** to remove the old bundled files.
 5. Enable NPC Studio and `NPCStudio.esp`, then launch Skyrim through SKSE. In the game world, press **Shift + 8** using the top-row number key.
 
 > [!TIP]
-> If the compatibility check is unchecked, confirm that MO2 manages the folder containing the executable you launch, then check the SKSE build and the matching Address Library file. DLL and BIN detection requires `use_any_file` and an enabled mod in the current profile.
+> If the compatibility check is unchecked, confirm that MO2 manages the folder containing the executable you launch, then check the SKSE build and the matching Address Library file. DLL, BIN, and SWF detection requires `use_any_file` and an enabled mod in the current profile.
 
-Use a separate save for beta testing. Character assignments and appearance are saved with the Skyrim save and its matching SKSE co-save. Settings, custom presets, categories, and portraits live under `Data/SKSE/Plugins/NPCStudio`, often in MO2's Overwrite directory. Keep those files when replacing an installation. Earlier development snapshots with different save formats may require a new game.
+Character assignments and appearance are saved with the Skyrim save and its matching SKSE co-save. Settings, custom presets, categories, and portraits live under `Data/SKSE/Plugins/NPCStudio`, often in MO2's Overwrite directory. Keep those files when replacing an installation. Earlier development snapshots with different save formats may require a new game.
 
 ## Repositories
 
@@ -66,4 +78,4 @@ Use a separate save for beta testing. Character assignments and appearance are s
 - [Build a Follower](https://www.nexusmods.com/skyrimspecialedition/mods/185471) inspired the reserved-slot design. [NPC Preset Applier](https://www.nexusmods.com/skyrimspecialedition/mods/193575) and [RaceMenu](https://www.nexusmods.com/skyrimspecialedition/mods/19080) informed the appearance workflow.
 - Developed with **OpenAI Codex**, which helped solve technical implementation problems in the SKSE integration, rendering, save handling, and UI.
 
-The beta includes third-party notices for its native code.
+The installer includes third-party notices for its native code.

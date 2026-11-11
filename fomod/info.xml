@@ -2,7 +2,7 @@
 <fomod>
   <Name>NPC Studio - Beta</Name>
   <Author>Selenter</Author>
-  <Version MachineVersion="0.8.10">0.8.10</Version>
+  <Version MachineVersion="0.8.11">0.8.11</Version>
   <Description>Create and edit persistent NPCs for Skyrim Special Edition 1.6.1130 through 1.7.104 (see supported builds). Built for SkyrimNet-driven characters, with an in-game appearance studio, equipment presets, and live 3D previews.</Description>
   <Website>https://github.com/selenter-c/NPCStudio-GamePlugin</Website>
   <Groups>

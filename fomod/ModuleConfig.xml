@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
-  <moduleName>NPC Studio | 0.8.10</moduleName>
+  <moduleName>NPC Studio | 0.8.11</moduleName>
   <moduleImage path="fomod/images/banner.png" showImage="true" showFade="false"/>
   <requiredInstallFiles>
     <folder source="Core" destination=""/>
@@ -8,6 +8,125 @@
   <installSteps order="Explicit">
     <installStep name="NPC Studio Setup">
       <optionalFileGroups order="Explicit">
+        <group name="Skyrim version" type="SelectExactlyOne">
+          <plugins order="Explicit">
+            <plugin name="Skyrim 1.7.104 (Steam)">
+              <description>Requires SKSE64 2.3.1 and Address Library AE v13+ with versionlib-1-7-104-0.bin. All choices install the same NPC Studio files.</description>
+              <files/>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="Optional"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.7.105"/>
+                      </dependencies>
+                      <type name="Optional"/>
+                    </pattern>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.7.104"/>
+                      </dependencies>
+                      <type name="Recommended"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Skyrim 1.7.99 (Steam)">
+              <description>Requires SKSE64 2.3.0 and Address Library AE v12+ with versionlib-1-7-99-0.bin. All choices install the same NPC Studio files.</description>
+              <files/>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="Optional"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.7.100"/>
+                      </dependencies>
+                      <type name="Optional"/>
+                    </pattern>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.7.99"/>
+                      </dependencies>
+                      <type name="Recommended"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Skyrim 1.6.1179 (GOG)">
+              <description>Requires SKSE64 2.2.6 GOG and Address Library AE v11+ with versionlib-1-6-1179-0.bin. All choices install the same NPC Studio files.</description>
+              <files/>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="Optional"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.6.1180"/>
+                      </dependencies>
+                      <type name="Optional"/>
+                    </pattern>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.6.1179"/>
+                      </dependencies>
+                      <type name="Recommended"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Skyrim 1.6.1170 (Steam)">
+              <description>Requires SKSE64 2.2.6 Steam and Address Library AE v10+ with versionlib-1-6-1170-0.bin. All choices install the same NPC Studio files.</description>
+              <files/>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="Optional"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.6.1171"/>
+                      </dependencies>
+                      <type name="Optional"/>
+                    </pattern>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.6.1170"/>
+                      </dependencies>
+                      <type name="Recommended"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Skyrim 1.6.1130 (Steam)">
+              <description>Requires SKSE64 2.2.5 and Address Library AE v9+ with versionlib-1-6-1130-0.bin. All choices install the same NPC Studio files.</description>
+              <files/>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="Optional"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.6.1131"/>
+                      </dependencies>
+                      <type name="Optional"/>
+                    </pattern>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.6.1130"/>
+                      </dependencies>
+                      <type name="Recommended"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+          </plugins>
+        </group>
         <group name="Dependency check" type="SelectAny">
           <plugins order="Explicit">
             <plugin name="Skyrim, SKSE64 and Address Library">
@@ -122,6 +241,24 @@
                     <pattern>
                       <dependencies>
                         <fileDependency file="SKSE/Plugins/Magelight.dll" state="Active"/>
+                      </dependencies>
+                      <type name="Required"/>
+                    </pattern>
+                  </patterns>
+                </dependencyType>
+              </typeDescriptor>
+            </plugin>
+            <plugin name="Phantasm">
+              <description>Required for 3D previews. Install Phantasm 1.0.0 or newer separately and enable it in this profile. See the README for the download link.</description>
+              <files/>
+              <typeDescriptor>
+                <dependencyType>
+                  <defaultType name="CouldBeUsable"/>
+                  <patterns>
+                    <pattern>
+                      <dependencies operator="And">
+                        <fileDependency file="SKSE/Plugins/Phantasm.dll" state="Active"/>
+                        <fileDependency file="Interface/phantasm.swf" state="Active"/>
                       </dependencies>
                       <type name="Required"/>
                     </pattern>
