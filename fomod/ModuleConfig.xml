@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
-  <moduleName>NPC Studio | 0.8.7 Beta 3</moduleName>
+  <moduleName>NPC Studio | 0.8.9</moduleName>
   <moduleImage path="fomod/images/banner.png" showImage="true" showFade="false"/>
   <requiredInstallFiles>
     <folder source="Core" destination=""/>
@@ -10,32 +10,80 @@
       <optionalFileGroups order="Explicit">
         <group name="Dependency check" type="SelectAny">
           <plugins order="Explicit">
-            <plugin name="Skyrim 1.6.1170 and SKSE64 2.2.6">
-              <description>Use Skyrim Special Edition 1.6.1170 on Steam and launch it through SKSE64 2.2.6.</description>
+            <plugin name="Skyrim, SKSE64 and Address Library">
+              <description>Checks the detected Skyrim version, the minimum SKSE64 version for that build, and its Address Library file. One NPC Studio DLL covers all five builds. See the README for the matching SKSE64 downloads.</description>
               <typeDescriptor>
                 <dependencyType>
                   <defaultType name="CouldBeUsable"/>
                   <patterns>
+                    <!-- MO2 compares minimum versions and uses the first match. Upper bounds stop a fallback to an older build. -->
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.7.105"/>
+                      </dependencies>
+                      <type name="CouldBeUsable"/>
+                    </pattern>
+                    <pattern>
+                      <dependencies operator="And">
+                        <gameDependency version="1.7.104"/>
+                        <foseDependency version="0.2.3.1"/>
+                        <fileDependency file="SKSE/Plugins/versionlib-1-7-104-0.bin" state="Active"/>
+                      </dependencies>
+                      <type name="Required"/>
+                    </pattern>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.7.100"/>
+                      </dependencies>
+                      <type name="CouldBeUsable"/>
+                    </pattern>
+                    <pattern>
+                      <dependencies operator="And">
+                        <gameDependency version="1.7.99"/>
+                        <foseDependency version="0.2.3.0"/>
+                        <fileDependency file="SKSE/Plugins/versionlib-1-7-99-0.bin" state="Active"/>
+                      </dependencies>
+                      <type name="Required"/>
+                    </pattern>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.6.1180"/>
+                      </dependencies>
+                      <type name="CouldBeUsable"/>
+                    </pattern>
+                    <pattern>
+                      <dependencies operator="And">
+                        <gameDependency version="1.6.1179"/>
+                        <foseDependency version="0.2.2.6"/>
+                        <fileDependency file="SKSE/Plugins/versionlib-1-6-1179-0.bin" state="Active"/>
+                      </dependencies>
+                      <type name="Required"/>
+                    </pattern>
+                    <pattern>
+                      <dependencies>
+                        <gameDependency version="1.6.1171"/>
+                      </dependencies>
+                      <type name="CouldBeUsable"/>
+                    </pattern>
                     <pattern>
                       <dependencies operator="And">
                         <gameDependency version="1.6.1170"/>
                         <foseDependency version="0.2.2.6"/>
+                        <fileDependency file="SKSE/Plugins/versionlib-1-6-1170-0.bin" state="Active"/>
                       </dependencies>
                       <type name="Required"/>
                     </pattern>
-                  </patterns>
-                </dependencyType>
-              </typeDescriptor>
-            </plugin>
-            <plugin name="Address Library for AE">
-              <description>Install the Anniversary Edition package of Address Library for SKSE Plugins. It provides the addresses NPC Studio needs on Skyrim 1.6.1170.</description>
-              <typeDescriptor>
-                <dependencyType>
-                  <defaultType name="CouldBeUsable"/>
-                  <patterns>
                     <pattern>
                       <dependencies>
-                        <fileDependency file="SKSE/Plugins/versionlib-1-6-1170-0.bin" state="Active"/>
+                        <gameDependency version="1.6.1131"/>
+                      </dependencies>
+                      <type name="CouldBeUsable"/>
+                    </pattern>
+                    <pattern>
+                      <dependencies operator="And">
+                        <gameDependency version="1.6.1130"/>
+                        <foseDependency version="0.2.2.5"/>
+                        <fileDependency file="SKSE/Plugins/versionlib-1-6-1130-0.bin" state="Active"/>
                       </dependencies>
                       <type name="Required"/>
                     </pattern>
@@ -44,7 +92,7 @@
               </typeDescriptor>
             </plugin>
             <plugin name="Magelight UI">
-              <description>Magelight UI runs the in-game editor. Install a version with the Magelight v4 API and enable it in this profile.</description>
+              <description>Magelight UI runs the in-game editor. Install a build exposing its v4 API and enable it in this profile. On Skyrim 1.7.x use Magelight UI 1.8.0 or a newer compatible build.</description>
               <typeDescriptor>
                 <dependencyType>
                   <defaultType name="CouldBeUsable"/>

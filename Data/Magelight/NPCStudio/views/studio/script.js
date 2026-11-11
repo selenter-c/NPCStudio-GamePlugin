@@ -172,7 +172,13 @@ const KeyOptions = [
 ]
 function Render() {
   if (!State) return
+  Elements.runtimeLabel.textContent = State.runtime ? 'MAGELIGHT UI · SKYRIM ' + State.runtime : 'MAGELIGHT UI'
   ApplyLocale(State.settings.language || 'ru')
+  for (const Id of ['previewMotion', 'appearanceMotion', 'itemPreviewWorn']) {
+    const Select = Elements[Id]
+    for (const Option of Select.options) Option.textContent = T(Option.dataset.caption)
+    RefreshCombo(Select)
+  }
   ApplyTheme(State.settings.theme || 'ember')
   Retake.textContent = T('Переснять портрет')
   ScaleRow.firstChild.textContent = T('Масштаб интерфейса')
@@ -574,7 +580,7 @@ Elements.applyNpcHeight.onclick = async () => {
     if (Revision === AppearanceRevision) {
       AppearanceBusy = false
       RenderAppearance()
-      if (Applied) QueueLookFrame(false, true)
+      if (Applied) QueueLookFrame()
     }
   }
 }
@@ -644,7 +650,7 @@ async function LoadAppearance(Apply = false) {
   const Revision = ++AppearanceRevision
   CancelHairSlider()
   CancelLookFrameTick()
-  LookFrameBusy = LookFrameAgain = LookTryPending = LookResume = false
+  LookFrameBusy = LookFrameAgain = LookTryPending = false
   AppearanceBusy = true
   RenderAppearance()
   try {
@@ -668,7 +674,7 @@ async function LoadAppearance(Apply = false) {
     if (Revision === AppearanceRevision) {
       AppearanceBusy = false
       RenderAppearance()
-      QueueLookFrame(false, true)
+      QueueLookFrame()
     }
   }
 }
@@ -1091,10 +1097,9 @@ async function LoadSavedPortraits() {
 let PortraitTimer = null
 let PortraitBusy = false
 let PortraitDeadline = null
-let PortraitRetry = null, PortraitRetryCount = 0, PortraitActor = null
+let PortraitActor = null
 function EndPortrait() {
   clearTimeout(PortraitDeadline)
-  clearTimeout(PortraitRetry)
   PortraitActor = null
   PortraitBusy = false
   PortraitSaving = false
@@ -1104,7 +1109,6 @@ async function TakePortrait(Actor) {
   if (PortraitBusy) return
   PortraitBusy = true
   PortraitActor = Actor
-  PortraitRetryCount = 0
   PortraitAttempts.add(Actor.identity)
   PortraitDeadline = setTimeout(() => {
     Message(T('Не удалось получить портрет'), true)
@@ -1162,9 +1166,9 @@ function RenderPreview() {
     Elements.previewImage.src = PreviewFrame.image
   Elements.previewStatus.textContent = PreviewBusy
     ? T('Загрузка модели…')
-    : PreviewError ||
+    : PreviewError || (PreviewFrame?.waiting ? T('Рендер ожидает свободного места…') : '') ||
       (Valid
-        ? T('Живое превью · Phantasm')
+        ? T(PreviewFrame.lastSeen ? 'Последний вид NPC в этой сессии' : 'Живое превью · Phantasm')
         : T('Для превью нужна загруженная модель NPC.'))
   Elements.previewRefresh.disabled = !Actor || Actor.parked || Actor.dead || Actor.restoring || PreviewBusy
   if (
@@ -1181,7 +1185,7 @@ function RenderPreview() {
   }
 }
 async function RequestPreview(Capture = false) {
-  if (PortraitBusy) return
+  if (PortraitSaving) return
   const Actor = CurrentActor()
   if (!UIVisible || !Actor || Actor.parked || Actor.restoring || CurrentTab !== 'roster') return
   if (PreviewBusy) {
@@ -1199,7 +1203,7 @@ async function RequestPreview(Capture = false) {
       capture: Capture,
       yaw: Number(Elements.previewYaw.value), pitch: ActorPitch,
       zoom: Number(Elements.previewZoom.value), panX: Number(Elements.previewViewport.dataset.panX || 0), panY: Number(Elements.previewViewport.dataset.panY || 0),
-      light: Elements.previewLight.value,
+      light: Elements.previewLight.value, motion: Elements.previewMotion.value === 'on',
     }, true)
   } catch (Failure) {
     if (Sequence === PreviewSequence) PreviewError = T(Failure.message)
@@ -1232,15 +1236,7 @@ function ReceivePreview(Update) {
   if (Update.identity?.startsWith('look-')) { ReceiveLookFrame(Update); return }
   if (Update.kind === 'portrait') {
     if (Update.pending && !Update.portrait && !Update.error) return
-    if (PortraitBusy && PortraitActor?.identity === Update.identity &&
-        ['view-drawing', 'busy'].includes(Update.error) && PortraitRetryCount++ < 3) {
-      PortraitRetry = setTimeout(async () => {
-        if (!PortraitBusy || !PortraitActor || !UIVisible) return
-        try { await Send('portrait', { id: PortraitActor.id, identity: PortraitActor.identity, ...(PortraitSaving ? PortraitSaveOptions : {}) }, true) }
-        catch (Failure) { Message(T(Failure.message), true); EndPortrait() }
-      }, 200)
-      return
-    }
+    if (PortraitActor?.identity !== Update.identity) return
     if (Update.error) { PortraitSaving = false; Message(T('Не удалось получить портрет') + ': ' + Update.error, true) }
     if (Update.portrait && State?.slots.some((Actor) => Actor.identity === Update.identity)) {
       Portraits.set(Update.identity, Update.portrait)
@@ -1258,13 +1254,14 @@ function ReceivePreview(Update) {
     if (Update.image) {
       Elements.itemPreviewImage.src = Update.image
       Elements.itemPreviewImage.hidden = false
-    }
-    Elements.itemPreviewStatus.textContent = Update.error || (Update.image ? T('Живое превью · Phantasm') : T('Загрузка модели…'))
+    } else if (Update.waiting || Update.error) Elements.itemPreviewImage.hidden = true
+    Elements.itemPreviewStatus.textContent = T(Update.error || (Update.waiting ? 'Рендер ожидает свободного места…' :
+      Update.image ? 'Живое превью · Phantasm' : 'Загрузка модели…'))
     return
   }
   if (Update.identity !== CurrentActor()?.identity || CurrentTab !== 'roster') return
   // Подтверждение команды камеры может прийти после ready-события. Не затираем уже полученный URL.
-  if (!Update.image && PreviewFrame?.identity === Update.identity && PreviewFrame.image) return
+  if (!Update.image && !Update.waiting && !Update.error && PreviewFrame?.identity === Update.identity && PreviewFrame.image) return
   PreviewFrame = Update
   PreviewError = Update.error ? T(Update.error) : ''
   RenderPreview()
@@ -1279,7 +1276,6 @@ function StopPreview() {
   clearTimeout(PortraitTimer)
   PortraitTimer = null
   clearTimeout(PortraitDeadline)
-  clearTimeout(PortraitRetry)
   PortraitActor = null
   PortraitBusy = false
   ++PreviewSequence
@@ -1308,7 +1304,8 @@ async function RequestItemPreview() {
   try {
     await Send('itemPreview', {
       item: { plugin: ItemTarget.plugin, form: ItemTarget.form },
-      yaw: Number(Elements.itemPreviewYaw.value), pitch: ItemPitch, zoom: Number(Elements.itemPreviewZoom.value), panX: Number(Elements.itemPreviewViewport.dataset.panX || 0), panY: Number(Elements.itemPreviewViewport.dataset.panY || 0), light: Elements.itemPreviewLight.value,
+      yaw: Number(Elements.itemPreviewYaw.value), pitch: ItemPitch, zoom: Number(Elements.itemPreviewZoom.value), panX: Number(Elements.itemPreviewViewport.dataset.panX || 0), panY: Number(Elements.itemPreviewViewport.dataset.panY || 0),
+      worn: ItemTarget.kind === 'armor' ? Elements.itemPreviewWorn.value : 'off',
     }, true)
   } catch (Failure) { if (Sequence === PreviewSequence) Elements.itemPreviewStatus.textContent = T(Failure.message) }
   finally {
@@ -1322,6 +1319,9 @@ function OpenItemPreview(Item) {
   StopPreview()
   ItemPitch = 0
   ItemTarget = Item
+  Elements.itemPreviewWorn.value = 'off'
+  RefreshCombo(Elements.itemPreviewWorn)
+  Elements.itemPreviewWorn.closest('.combo').hidden = Item.kind !== 'armor'
   Elements.itemPreviewName.textContent = Item.name
   let Details = Elements.itemPreviewPanel.querySelector('.item-details')
   if (!Details) { Details = document.createElement('dl'); Details.className = 'item-details'; Elements.itemPreviewPanel.append(Details) }
@@ -1366,7 +1366,7 @@ function InstallPreviewCamera(Prefix, DefaultYaw, ReadPitch, WritePitch, Queue, 
     Toolbar.append(Button)
   }
   if (Prefix === 'preview') Toolbar.append(Elements.previewLight.closest('label'))
-  else {
+  else if (Prefix === 'appearance') {
     const Light = document.createElement('select')
     Light.innerHTML = Elements.previewLight.innerHTML
     Light.value = Elements.previewLight.value
@@ -1376,6 +1376,23 @@ function InstallPreviewCamera(Prefix, DefaultYaw, ReadPitch, WritePitch, Queue, 
     Toolbar.append(Light)
     EnhanceSelect(Light)
   }
+  const Mode = document.createElement('select')
+  const Choices = Prefix === 'itemPreview'
+    ? [['off', 'Модель предмета'], ['female', 'На женщине'], ['male', 'На мужчине']]
+    : [['off', 'Статичная поза'], ['on', 'Анимация']]
+  for (const [Value, Caption] of Choices) {
+    const Choice = new Option(T(Caption), Value)
+    Choice.dataset.caption = Caption
+    Mode.add(Choice)
+  }
+  Mode.id = Prefix + (Prefix === 'itemPreview' ? 'Worn' : 'Motion')
+  Elements[Mode.id] = Mode
+  Mode.onchange = Queue
+  Toolbar.append(Mode)
+  EnhanceSelect(Mode)
+  const ModeCombo = Mode.closest('.combo')
+  ModeCombo.classList.add('camera-mode')
+  if (Prefix === 'itemPreview') ModeCombo.hidden = true
   const Reset = document.createElement('button')
   Reset.className = 'camera-home'
   Reset.textContent = '◎'
@@ -1463,7 +1480,6 @@ document.body.append(PortraitDialog)
 let CropActor = null
 // Портрет выбирается поверх живого вида; PNG создаёт нативный renderer.
 let PortraitEditing = false, PortraitSaving = false, PortraitHome = null
-let PortraitSaveOptions = null
 PortraitDialog.innerHTML = '<h3 data-label="Портрет"></h3><div class="portrait-live"></div><p><span data-label="Переместите круг на лицо"></span></p><label><span data-label="Размер круга"></span><input class="circle-size" type="range" min="60" max="400" value="180"></label><div class="actions"><button class="portrait-save"><span data-label="Сохранить"></span></button><button class="portrait-cancel"><span data-label="Отмена"></span></button></div>'
 const Circle = document.createElement('div')
 Circle.className = 'portrait-circle'
@@ -1500,19 +1516,18 @@ PortraitDialog.onclose = () => {
 PortraitDialog.querySelector('.portrait-cancel').onclick = () => PortraitDialog.close()
 PortraitDialog.querySelector('.portrait-save').onclick = async () => {
   if (PortraitSaving || !CropActor) return
-  if (PreviewBusy || !PreviewFrame?.image || Elements.previewImage.hidden) {
+  if (PreviewBusy || CameraTimer || !PreviewFrame?.image || Elements.previewImage.hidden) {
     Message(T('Загрузка модели…'))
     return
   }
   PortraitSaving = true; PortraitBusy = true
-  PortraitActor = CropActor; PortraitRetryCount = 0
+  PortraitActor = CropActor
   PortraitDeadline = setTimeout(() => {
     Message(T('Не удалось получить портрет'), true)
     EndPortrait()
   }, 12000)
-  PortraitSaveOptions = { capture: true, editorCapture: true, zoom: Number(Elements.previewZoom.value), panX: Number(Elements.previewViewport.dataset.panX || 0), panY: Number(Elements.previewViewport.dataset.panY || 0), yaw: Number(Elements.previewYaw.value), pitch: ActorPitch, light: Elements.previewLight.value, cropX: CircleX / 480, cropY: CircleY / 640, cropSize: CircleSize / 480 }
   try {
-    await Send('portrait', { id: CropActor.id, identity: CropActor.identity, capture: true, editorCapture: true, zoom: Number(Elements.previewZoom.value), panX: Number(Elements.previewViewport.dataset.panX || 0), panY: Number(Elements.previewViewport.dataset.panY || 0), yaw: Number(Elements.previewYaw.value), pitch: ActorPitch, light: Elements.previewLight.value, cropX: CircleX / 480, cropY: CircleY / 640, cropSize: CircleSize / 480 }, true)
+    await Send('portrait', { id: CropActor.id, identity: CropActor.identity, capture: true, editorCapture: true, cropX: CircleX / 480, cropY: CircleY / 640, cropSize: CircleSize / 480 }, true)
   } catch (Failure) { EndPortrait(); Message(Failure.message, true) }
 }
 

@@ -1019,6 +1019,8 @@ input[type=range] { accent-color: var(--accent); height: 5px; border-radius: 8px
 .camera-toolbar button[data-axis=Zoom][data-delta='-0.15'] { grid-column: 1; grid-row: 4; margin-top: 5px; }
 .camera-toolbar button[data-axis=Zoom][data-delta='0.15'] { grid-column: 3; grid-row: 4; margin-top: 5px; }
 .camera-toolbar label, .camera-toolbar > .combo { grid-row: 5; margin-top: 5px; }
+.camera-toolbar > .camera-mode { grid-row: 6; margin-top: 0; }
+.camera-toolbar > .camera-mode[hidden] { display: none; }
 .camera-toolbar .combo-button { padding: 4px 6px; text-align: left; }
 .settings-card { max-width:none !important; width:100%; }
 .settings-card .form-grid { grid-template-columns:1fr; }

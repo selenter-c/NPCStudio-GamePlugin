@@ -2,7 +2,6 @@ let LookFrameTimer = null
 let LookFrameBusy = false
 let LookFrameAgain = false
 let LookTryPending = false
-let LookResume = false
 let HairSliderTimer = null
 let HairObserver = null
 let HairVisible = new Set()
@@ -27,7 +26,6 @@ function ClearLookPreview() {
   LookFrameBusy = false
   LookFrameAgain = false
   LookTryPending = false
-  LookResume = false
   Elements.appearanceImage.hidden = true
   Elements.appearanceImage.removeAttribute('src')
   Elements.appearancePreviewStatus.textContent = ''
@@ -46,10 +44,9 @@ function FlushHairSlider() {
   QueueLookFrame(true)
 }
 
-function QueueLookFrame(TryOn = false, Resume = false) {
+function QueueLookFrame(TryOn = false) {
   if (!UIVisible || CurrentTab !== 'appearance' || !Appearance?.available || AppearanceBusy || Elements.hairPicker.open) return
   LookTryPending ||= TryOn
-  LookResume ||= Resume
   LookFrameAgain = true
   if (!LookFrameBusy && LookFrameTimer === null) LookFrameTimer = requestAnimationFrame(ShowLookFrame)
 }
@@ -61,16 +58,15 @@ async function ShowLookFrame() {
   if (!Address) return
   const Revision = AppearanceRevision
   const TryOn = LookTryPending
-  const Resume = LookResume
-  LookTryPending = LookResume = LookFrameAgain = false
+  LookTryPending = LookFrameAgain = false
   LookFrameBusy = true
-  if (TryOn || Resume || Elements.appearanceImage.hidden)
+  if (Elements.appearanceImage.hidden)
     Elements.appearancePreviewStatus.textContent = T('Загрузка модели…')
   try {
     await Send(TryOn ? 'tryAppearance' : 'appearanceFrame', {
       ...Address, yaw: Number(Elements.appearanceYaw.value), pitch: LookPitch, zoom: Number(Elements.appearanceZoom.value),
       panX: Number(Elements.appearanceViewport.dataset.panX || 0), panY: Number(Elements.appearanceViewport.dataset.panY || 0),
-      light: Elements.appearanceLight.value, resume: Resume,
+      light: Elements.appearanceLight.value, motion: Elements.appearanceMotion.value === 'on',
       ...(TryOn ? DraftAppearance() : {}),
     }, true)
   } catch (Failure) {
@@ -86,12 +82,13 @@ async function ShowLookFrame() {
 }
 
 function ReceiveLookFrame(Update) {
-  if (CurrentTab !== 'appearance' || Appearance?.previewIdentity !== Update.identity || Elements.hairPicker.open) return
+  if (CurrentTab !== 'appearance' || Appearance?.previewIdentity !== Update.identity) return
   if (Update.image) {
     if (Elements.appearanceImage.getAttribute('src') !== Update.image) Elements.appearanceImage.src = Update.image
     Elements.appearanceImage.hidden = false
-  }
-  const Status = T(Update.error || (Update.image || !Elements.appearanceImage.hidden ? 'Живое превью · Phantasm' : 'Загрузка модели…'))
+  } else if (Update.waiting || Update.error) Elements.appearanceImage.hidden = true
+  const Status = T(Update.error || (Update.waiting ? 'Рендер ожидает свободного места…' :
+    Update.image || !Elements.appearanceImage.hidden ? 'Живое превью · Phantasm' : 'Загрузка модели…'))
   if (Elements.appearancePreviewStatus.textContent !== Status) Elements.appearancePreviewStatus.textContent = Status
 }
 
@@ -116,6 +113,7 @@ function StopHairShots() {
   HairObserver?.disconnect()
   HairObserver = null
   HairVisible.clear()
+  if (HairShot) Send('hairThumbnailCancel', { token: HairShot.Token }, true).catch(() => {})
   HairShot = null
   clearTimeout(HairShotTimer)
   HairRetries.clear()
@@ -233,7 +231,7 @@ function FinishHairShot(Update) {
   const { Id } = HairShot
   HairShot = null
   clearTimeout(HairShotTimer)
-  if (['busy', 'view-drawing', 'timed-out'].includes(Update.error)) {
+  if (['busy', 'timed-out'].includes(Update.error)) {
     HairRetries.set(Id, Update.error === 'timed-out' ? 3 : (HairRetries.get(Id) || 0) + 1)
     HairShotTimer = setTimeout(StartHairShot, Update.error === 'timed-out' ? 0 : 100)
     return
@@ -433,7 +431,7 @@ function InitializeAppearancePreview() {
   Elements.closeHairPicker.onclick = () => Elements.hairPicker.close()
   Elements.hairPicker.addEventListener('close', () => {
     StopHairShots()
-    QueueLookFrame(TryHairOnClose, true)
+    QueueLookFrame(TryHairOnClose)
     TryHairOnClose = false
   })
   Elements.hairSearch.oninput = RenderHairGrid

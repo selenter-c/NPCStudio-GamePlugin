@@ -476,11 +476,18 @@ Object.assign(English, {
   'Живое превью · Phantasm': 'Live preview · Phantasm',
   'Посмотреть предмет': 'Preview item',
   '3D-превью предмета': '3D item preview',
+  'Модель предмета': 'Item model', 'На женщине': 'Worn (female)', 'На мужчине': 'Worn (male)',
+  'Статичная поза': 'Still pose', 'Анимация': 'Animation',
+  'Рендер ожидает свободного места…': 'Waiting for the renderer…',
+  'Последний вид NPC в этой сессии': 'Last appearance seen this session',
   'Дневной свет': 'Daylight', 'У очага': 'Hearth', 'Факел': 'Torchlight', 'Лунный свет': 'Moonlight', 'Как в игре': 'In-game lighting',
 })
 Object.assign(RussianMessages, {
-  'Install and enable Phantasm 0.3.0 from the supplied local dependency archive, then restart Skyrim': 'Установите и включите Phantasm 0.3.0 из отдельного локального архива, затем перезапустите Skyrim',
-  'Unsupported Phantasm build: expected 0.3.0 ccf916f72d59': 'Нужна проверенная сборка Phantasm 0.3.0 ccf916f72d59',
+  'Enable Phantasm 1.0.0 or newer and restart Skyrim': 'Включите Phantasm 1.0.0 или новее и перезапустите Skyrim',
+  'The active Phantasm DLL is too old. Use Phantasm 1.0.0 or newer': 'В MO2 загружается старая версия Phantasm. Нужна версия 1.0.0 или новее',
+  'not-drawing': 'Кадр ещё не готов. Попробуйте снова',
+  'no-image': 'Для живого превью нужен режим Direct3D 11 в Magelight UI',
+  'not-loaded': 'Модель NPC пока недоступна. Призовите персонажа',
   'Portrait queue is full': 'Очередь портретов заполнена',
   'Unsupported preview item': 'Этот предмет не поддерживает 3D-превью',
 })
