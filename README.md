@@ -60,6 +60,8 @@ Each character uses a persistent game reference. NPCs start as blank characters 
 
 > [!TIP]
 > If the compatibility check is unchecked, confirm that MO2 manages the folder containing the executable you launch, then check the SKSE build and the matching Address Library file. DLL, BIN, and SWF detection requires `use_any_file` and an enabled mod in the current profile.
+> <img width="1270" height="562" alt="image" src="https://github.com/user-attachments/assets/8ddc7cda-3679-4088-90ba-b2e3959aee47" />
+
 
 Character assignments and appearance are saved with the Skyrim save and its matching SKSE co-save. Settings, custom presets, categories, and portraits live under `Data/SKSE/Plugins/NPCStudio`, often in MO2's Overwrite directory. Keep those files when replacing an installation. Earlier development snapshots with different save formats may require a new game.
 
